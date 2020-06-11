@@ -1822,10 +1822,45 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
             return true;
         }
 
+        public boolean isRef() {
+            return false;
+        }
+
+        public TypeVar refType() {
+            return new RefTypeVar(tsym, _bound, lower, metadata);
+        }
+
         @Override @DefinedBy(Api.LANGUAGE_MODEL)
         public <R, P> R accept(TypeVisitor<R, P> v, P p) {
             return v.visitTypeVariable(this, p);
         }
+    }
+
+    public static class RefTypeVar extends TypeVar {
+
+        public RefTypeVar(TypeSymbol tsym, Type bound, Type lower,
+                       TypeMetadata metadata) {
+            super(tsym, bound, lower, metadata);
+        }
+
+        @Override
+        public TypeVar cloneWithMetadata(TypeMetadata md) {
+            return new RefTypeVar(tsym, getUpperBound(), lower, md) {
+                @Override
+                public Type baseType() { return RefTypeVar.this.baseType(); }
+
+                @Override @DefinedBy(Api.LANGUAGE_MODEL)
+                public Type getUpperBound() { return RefTypeVar.this.getUpperBound(); }
+
+                public void setUpperBound(Type bound) { RefTypeVar.this.setUpperBound(bound); }
+            };
+        }
+
+        @Override
+        public boolean isRef() {
+            return true;
+        }
+
     }
 
     /** A captured type variable comes from wildcards which can have

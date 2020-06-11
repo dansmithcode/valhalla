@@ -266,6 +266,33 @@ public class Check {
             uncheckedHandler.report(pos, warnKey);
     }
 
+    public void warnNullVariable(DiagnosticPosition pos, Symbol typeVar) {
+        if (!lint.isSuppressed(LintCategory.NULL_VARIABLE)) {
+            deferredLintHandler.report(() -> {
+                if (lint.isEnabled(LintCategory.NULL_VARIABLE))
+                    log.warning(LintCategory.NULL_VARIABLE, pos, Warnings.NullVariableAssignment(typeVar));
+            });
+        }
+    }
+
+    public void warnNullCapture(DiagnosticPosition pos, Symbol typeVar) {
+        if (!lint.isSuppressed(LintCategory.NULL_CAPTURE)) {
+            deferredLintHandler.report(() -> {
+                if (lint.isEnabled(LintCategory.NULL_CAPTURE))
+                    log.warning(LintCategory.NULL_CAPTURE, pos, Warnings.NullCaptureAssignment(typeVar));
+            });
+        }
+    }
+
+    public void warnNullNarrowing(DiagnosticPosition pos, Symbol typeVar) {
+        if (!lint.isSuppressed(LintCategory.NULL_NARROWING)) {
+            deferredLintHandler.report(() -> {
+                if (lint.isEnabled(LintCategory.NULL_NARROWING))
+                    log.warning(LintCategory.NULL_NARROWING, pos, Warnings.NullCaptureAssignment(typeVar));
+            });
+        }
+    }
+
     /** Warn about unsafe vararg method decl.
      *  @param pos        Position to be used for error reporting.
      */
@@ -4078,6 +4105,15 @@ public class Check {
                             !types.isReifiable(method.type.getParameterTypes().last())) {
                         Check.this.warnUnsafeVararg(pos(), Warnings.VarargsUnsafeUseVarargsParam(method.params.last()));
                     }
+                    break;
+                case NULL_VARIABLE:
+                    Check.this.warnNullVariable(pos(), expected.tsym);
+                    break;
+                case NULL_CAPTURE:
+                    Check.this.warnNullCapture(pos(), expected.tsym);
+                    break;
+                case NULL_NARROWING:
+                    Check.this.warnNullNarrowing(pos(), expected.tsym);
                     break;
                 default:
                     throw new AssertionError("Unexpected lint: " + lint);

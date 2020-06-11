@@ -1029,10 +1029,31 @@ public class Types {
         boolean result = isSubtypeUncheckedInternal(t, s, true, warn);
         if (result) {
             checkUnsafeVarargsConversion(t, s, warn);
+            if (t.hasTag(BOT) && s.hasTag(TYPEVAR) && s.getLowerBound().hasTag(BOT)) {
+                if (((TypeVar) s).isCaptured()) warn.warn(LintCategory.NULL_CAPTURE);
+                else warn.warn(LintCategory.NULL_VARIABLE);
+            }
+            if (t.hasTag(TYPEVAR) && s.hasTag(TYPEVAR) && !((TypeVar) s).isRef() && isRefForVar(t, s.tsym)) {
+                warn.warn(LintCategory.NULL_NARROWING);
+            }
         }
         return result;
     }
     //where
+        private boolean isRefForVar(Type t, TypeSymbol tsym) {
+            if (t.hasTag(TYPEVAR) && ((TypeVar) t).isRef()) {
+                return true;
+            } else if (t.tsym == tsym) {
+                return false;
+            } else if (t.hasTag(TYPEVAR)) {
+                return isRefForVar(t.getUpperBound(), tsym);
+            } else if (t.isIntersection()) {
+                return isRefForVar(((IntersectionClassType) t).supertype_field, tsym);
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
+
         private boolean isSubtypeUncheckedInternal(Type t, Type s, boolean capture, Warner warn) {
             if (t.hasTag(ARRAY) && s.hasTag(ARRAY)) {
                 if (((ArrayType)t).elemtype.isPrimitive()) {

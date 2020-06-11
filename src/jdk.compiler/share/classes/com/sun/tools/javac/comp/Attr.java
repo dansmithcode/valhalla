@@ -4370,6 +4370,9 @@ public class Attr extends JCTree.Visitor {
                     // Be sure to return the default value before examining bounds
                     return new VarSymbol(STATIC, names._default, site, site.tsym);
                 }
+                if (name == names.ref) {
+                    return site.tsym;
+                }
                 // Normally, site.getUpperBound() shouldn't be null.
                 // It should only happen during memberEnter/attribBase
                 // when determining the super type which *must* be
@@ -4503,6 +4506,10 @@ public class Attr extends JCTree.Visitor {
                             owntype = new ClassType(
                                 normOuter, List.nil(), owntype.tsym,
                                 owntype.getMetadata());
+                    }
+                } else if (owntype.hasTag(TYPEVAR)) {
+                    if (tree.hasTag(SELECT) && ((JCFieldAccess) tree).name == names.ref) {
+                        owntype = ((TypeVar) owntype).refType();
                     }
                 }
                 break;

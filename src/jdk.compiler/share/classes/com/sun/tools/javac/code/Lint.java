@@ -107,6 +107,9 @@ public class Lint
         if (options.isSet(Option.XLINT) || options.isSet(Option.XLINT_CUSTOM, "all")) {
             // If -Xlint or -Xlint:all is given, enable all categories by default
             values = EnumSet.allOf(LintCategory.class);
+            values.remove(LintCategory.NULL_VARIABLE);
+            values.remove(LintCategory.NULL_CAPTURE);
+            values.remove(LintCategory.NULL_NARROWING);
         } else if (options.isSet(Option.XLINT_CUSTOM, "none")) {
             // if -Xlint:none is given, disable all categories by default
             values = EnumSet.noneOf(LintCategory.class);
@@ -305,7 +308,16 @@ public class Lint
         /**
          * Warn about use of preview features.
          */
-        PREVIEW("preview");
+        PREVIEW("preview"),
+
+        /** Warn about assignments from null to type variable types. */
+        NULL_VARIABLE("null-variable"),
+
+        /** Warn about assignments from null to capture variable types. */
+        NULL_CAPTURE("null-capture"),
+
+        /** Warn about assignments from reference type variables to universal type variables. */
+        NULL_NARROWING("null-narrowing");
 
         LintCategory(String option) {
             this(option, false);
