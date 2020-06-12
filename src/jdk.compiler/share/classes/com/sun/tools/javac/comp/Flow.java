@@ -50,8 +50,7 @@ import com.sun.tools.javac.tree.JCTree.*;
 import static com.sun.tools.javac.code.Flags.*;
 import static com.sun.tools.javac.code.Flags.BLOCK;
 import static com.sun.tools.javac.code.Kinds.Kind.*;
-import static com.sun.tools.javac.code.TypeTag.BOOLEAN;
-import static com.sun.tools.javac.code.TypeTag.VOID;
+import static com.sun.tools.javac.code.TypeTag.*;
 import static com.sun.tools.javac.comp.Flow.ThisExposability.ALLOWED;
 import static com.sun.tools.javac.comp.Flow.ThisExposability.BANNED;
 import static com.sun.tools.javac.comp.Flow.ThisExposability.DISCOURAGED;
@@ -1791,13 +1790,20 @@ public class Flow {
             return
                 sym.pos >= startPos &&
                 ((sym.owner.kind == MTH || sym.owner.kind == VAR ||
-                isFinalUninitializedField(sym)));
+                isFinalUninitializedField(sym) || isUninitializedTypeVariableField(sym)));
         }
 
         boolean isFinalUninitializedField(VarSymbol sym) {
             return sym.owner.kind == TYP &&
                    ((sym.flags() & (FINAL | HASINIT | PARAMETER)) == FINAL &&
                    classDef.sym.isEnclosedBy((ClassSymbol)sym.owner));
+        }
+
+        boolean isUninitializedTypeVariableField(VarSymbol sym) {
+            return sym.owner.kind == TYP &&
+                    ((sym.flags() & (FINAL | HASINIT | PARAMETER)) == 0 &&
+                    classDef.sym.isEnclosedBy((ClassSymbol)sym.owner)) &&
+                    sym.type.hasTag(TYPEVAR);
         }
 
         boolean isFinalUninitializedStaticField(VarSymbol sym) {
@@ -1913,10 +1919,16 @@ public class Flow {
 
         void checkInit(DiagnosticPosition pos, VarSymbol sym, Error errkey) {
             if ((sym.adr >= firstadr || sym.owner.kind != TYP) &&
-                trackable(sym) &&
+                trackable(sym) && !isUninitializedTypeVariableField(sym) &&
                 !inits.isMember(sym.adr)) {
                     log.error(pos, errkey);
                 inits.incl(sym.adr);
+            }
+        }
+
+        void checkNullDefault(DiagnosticPosition pos, VarSymbol sym) {
+            if (sym.type.hasTag(TYPEVAR) && !((Type.TypeVar) sym.type).isRef() && !inits.isMember(sym.adr)) {
+                chk.warnNullDefault(pos, sym);
             }
         }
 
@@ -2159,6 +2171,7 @@ public class Flow {
                                 if (isSynthesized && !isCompactConstructor) {
                                     checkInit(TreeInfo.diagnosticPositionFor(var, vardecl),
                                             var, Errors.VarNotInitializedInDefaultConstructor(var));
+                                    checkNullDefault(TreeInfo.diagnosticPositionFor(var, vardecl), var);
                                 } else if (isCompactConstructor) {
                                     boolean isInstanceRecordField = var.enclClass().isRecord() &&
                                             (var.flags_field & (Flags.PRIVATE | Flags.FINAL | Flags.GENERATED_MEMBER | Flags.RECORD)) != 0 &&
@@ -2179,6 +2192,7 @@ public class Flow {
                                     }
                                 } else {
                                     checkInit(TreeInfo.diagEndPos(tree.body), var);
+                                    checkNullDefault(TreeInfo.diagEndPos(tree.body), var);
                                 }
                             }
                         }

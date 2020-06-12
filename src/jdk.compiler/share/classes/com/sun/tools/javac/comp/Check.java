@@ -288,10 +288,20 @@ public class Check {
         if (!lint.isSuppressed(LintCategory.NULL_NARROWING)) {
             deferredLintHandler.report(() -> {
                 if (lint.isEnabled(LintCategory.NULL_NARROWING))
-                    log.warning(LintCategory.NULL_NARROWING, pos, Warnings.NullCaptureAssignment(typeVar));
+                    log.warning(LintCategory.NULL_NARROWING, pos, Warnings.NullNarrowingAssignment(typeVar));
             });
         }
     }
+
+    public void warnNullDefault(DiagnosticPosition pos, Symbol field) {
+        if (!lint.isSuppressed(LintCategory.NULL_DEFAULT)) {
+            deferredLintHandler.report(() -> {
+                if (lint.isEnabled(LintCategory.NULL_DEFAULT))
+                    log.warning(LintCategory.NULL_DEFAULT, pos, Warnings.NullDefaultValue(field));
+            });
+        }
+    }
+
 
     /** Warn about unsafe vararg method decl.
      *  @param pos        Position to be used for error reporting.

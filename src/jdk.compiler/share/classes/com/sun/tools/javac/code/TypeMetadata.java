@@ -147,10 +147,15 @@ public class TypeMetadata {
         contents.put(kind, elem);
     }
 
+    public String toString() {
+        return contents.toString();
+    }
+
     public interface Entry {
 
         public enum Kind {
-            ANNOTATIONS
+            ANNOTATIONS,
+            REFVAR;
         }
 
         /**
@@ -201,5 +206,22 @@ public class TypeMetadata {
 
         @Override
         public String toString() { return "ANNOTATIONS [ " + annos + " ]"; }
+    }
+
+    public static class RefVar implements Entry {
+        public static final RefVar INSTANCE = new RefVar();
+        private RefVar() {}
+
+        @Override
+        public RefVar combine(Entry other) {
+            return this;
+        }
+
+        @Override
+        public Kind kind() { return Kind.REFVAR; }
+
+        @Override
+        public String toString() { return "REFVAR"; }
+
     }
 }

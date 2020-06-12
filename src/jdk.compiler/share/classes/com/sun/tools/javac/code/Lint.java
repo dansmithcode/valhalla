@@ -110,6 +110,7 @@ public class Lint
             values.remove(LintCategory.NULL_VARIABLE);
             values.remove(LintCategory.NULL_CAPTURE);
             values.remove(LintCategory.NULL_NARROWING);
+            values.remove(LintCategory.NULL_DEFAULT);
         } else if (options.isSet(Option.XLINT_CUSTOM, "none")) {
             // if -Xlint:none is given, disable all categories by default
             values = EnumSet.noneOf(LintCategory.class);
@@ -317,7 +318,10 @@ public class Lint
         NULL_CAPTURE("null-capture"),
 
         /** Warn about assignments from reference type variables to universal type variables. */
-        NULL_NARROWING("null-narrowing");
+        NULL_NARROWING("null-narrowing"),
+
+        /** Warn about null default values of fields whose type is a universal type variable. */
+        NULL_DEFAULT("null-default");
 
         LintCategory(String option) {
             this(option, false);

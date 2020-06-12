@@ -100,6 +100,7 @@ public class Types {
     JCDiagnostic.Factory diags;
     List<Warner> warnStack = List.nil();
     final Name capturedName;
+    final Lint lint;
 
     public final Warner noWarnings;
 
@@ -126,6 +127,7 @@ public class Types {
         noWarnings = new Warner(null);
         Options options = Options.instance(context);
         allowValueBasedClasses = options.isSet("allowValueBasedClasses");
+        lint = Lint.instance(context);
     }
     // </editor-fold>
 
@@ -1029,31 +1031,11 @@ public class Types {
         boolean result = isSubtypeUncheckedInternal(t, s, true, warn);
         if (result) {
             checkUnsafeVarargsConversion(t, s, warn);
-            if (t.hasTag(BOT) && s.hasTag(TYPEVAR) && s.getLowerBound().hasTag(BOT)) {
-                if (((TypeVar) s).isCaptured()) warn.warn(LintCategory.NULL_CAPTURE);
-                else warn.warn(LintCategory.NULL_VARIABLE);
-            }
-            if (t.hasTag(TYPEVAR) && s.hasTag(TYPEVAR) && !((TypeVar) s).isRef() && isRefForVar(t, s.tsym)) {
-                warn.warn(LintCategory.NULL_NARROWING);
-            }
+            checkNullAssignment(t, s, warn);
         }
         return result;
     }
     //where
-        private boolean isRefForVar(Type t, TypeSymbol tsym) {
-            if (t.hasTag(TYPEVAR) && ((TypeVar) t).isRef()) {
-                return true;
-            } else if (t.tsym == tsym) {
-                return false;
-            } else if (t.hasTag(TYPEVAR)) {
-                return isRefForVar(t.getUpperBound(), tsym);
-            } else if (t.isIntersection()) {
-                return isRefForVar(((IntersectionClassType) t).supertype_field, tsym);
-            } else {
-                throw new IllegalArgumentException();
-            }
-        }
-
         private boolean isSubtypeUncheckedInternal(Type t, Type s, boolean capture, Warner warn) {
             if (t.hasTag(ARRAY) && s.hasTag(ARRAY)) {
                 if (((ArrayType)t).elemtype.isPrimitive()) {
@@ -1108,6 +1090,33 @@ public class Types {
             }
             if (shouldWarn) {
                 warn.warn(LintCategory.VARARGS);
+            }
+        }
+
+        private void checkNullAssignment(Type t, Type s, Warner warn) {
+            if (s.hasTag(TYPEVAR)) {
+                if (((TypeVar) s).isCaptured()) {
+                    Type lower = s.getLowerBound();
+                    if (lower.hasTag(BOT)) {
+                        if (t.hasTag(BOT)) {
+                            warn.warn(LintCategory.NULL_CAPTURE);
+                        }
+                    } else if (t.tsym != s.tsym) {
+                        checkNullAssignment(t, lower, warn);
+                    }
+                } else if (!((TypeVar) s).isRef()){ // regular universal type variable
+                    if (t.hasTag(BOT)) {
+                        warn.warn(LintCategory.NULL_VARIABLE);
+                    } else if (t.hasTag(TYPEVAR)) {
+                        if (((TypeVar) t).isRef()) {
+                            warn.warn(LintCategory.NULL_NARROWING);
+                        } else {
+                            checkNullAssignment(t.getUpperBound(), s, warn);
+                        }
+                    } else if (t.isIntersection()) {
+                        checkNullAssignment(((IntersectionClassType) t).supertype_field, s, warn);
+                    }
+                }
             }
         }
 
@@ -2374,7 +2383,7 @@ public class Types {
             sym = sym.referenceProjection();
 
         return memberType.visit(t, sym);
-        }
+    }
     // where
         private SimpleVisitor<Type,Symbol> memberType = new SimpleVisitor<Type,Symbol>() {
 
@@ -3440,7 +3449,11 @@ public class Types {
                  from.nonEmpty();
                  from = from.tail, to = to.tail) {
                 if (t.equalsIgnoreMetadata(from.head)) {
-                    return to.head.withTypeVar(t);
+                    Type result = to.head.withTypeVar(t);
+                    if (t.isRef() && result.hasTag(TYPEVAR) && !((TypeVar) result).isRef()) {
+                        result = ((TypeVar) result).refType();
+                    }
+                    return result;
                 }
             }
             return t;
