@@ -485,6 +485,9 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
         } else {
             sb.append(tsym.name);
         }
+        if (hasTag(TYPEVAR) && metadata.get(Entry.Kind.REFVAR) != null) {
+            sb.append(".ref");
+        }
         if (moreInfo && hasTag(TYPEVAR)) {
             sb.append(hashCode());
         }
@@ -2113,6 +2116,7 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
             if (inst == null) {
                 sb.append(qtype);
                 sb.append('?');
+                sb.append(bounds.toString());
             } else {
                 sb.append(inst);
             }
@@ -2254,7 +2258,7 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
                     ((UndetVar)bound).addBound(ib.complement(), this, types, false);
                 }
             } else {
-                Type bound2 = bound.map(toTypeVarMap).baseType();
+                Type bound2 = bound.map(toTypeVarMap);
                 List<Type> prevBounds = bounds.get(ib);
                 if (bound == qtype) return;
                 for (Type b : prevBounds) {
