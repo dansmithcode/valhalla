@@ -26,13 +26,7 @@
 package com.sun.tools.javac.code;
 
 import java.lang.ref.SoftReference;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -63,6 +57,7 @@ import static com.sun.tools.javac.code.Type.*;
 import static com.sun.tools.javac.code.TypeTag.*;
 import static com.sun.tools.javac.jvm.ClassFile.externalize;
 import com.sun.tools.javac.resources.CompilerProperties.Fragments;
+import com.sun.tools.javac.util.List;
 
 /**
  * Utility class containing various operations on types.
@@ -1031,7 +1026,6 @@ public class Types {
         boolean result = isSubtypeUncheckedInternal(t, s, true, warn);
         if (result) {
             checkUnsafeVarargsConversion(t, s, warn);
-            checkNullAssignment(t, s, warn);
         }
         return result;
     }
@@ -1049,26 +1043,33 @@ public class Types {
                         if (isValue(es))
                             es = es.referenceProjection();  // V <: V, surely
                     }
-                    if (!isSubtypeUncheckedInternal(et, es, false, warn))
-                        return false;
-                    return true;
+                    return isSubtypeUncheckedInternal(et, es, false, warn);
                 }
-            } else if (isSubtype(t, s, capture)) {
-                return true;
-            } else if (t.hasTag(TYPEVAR)) {
-                return isSubtypeUncheckedInternal(t.getUpperBound(), s, false, warn);
-            } else if (!s.isRaw()) {
-                Type t2 = asSuper(t, s.tsym);
-                if (t2 != null && t2.isRaw()) {
-                    if (isReifiable(s)) {
-                        warn.silentWarn(LintCategory.UNCHECKED);
-                    } else {
-                        warn.warn(LintCategory.UNCHECKED);
+            } else {
+                SubtypeConstraints constraints = subtypeTest(t, s, capture);
+                if (constraints.success()) {
+                    for (LintCategory cat : constraints.constraints()) {
+                        warn.warn(cat);
                     }
                     return true;
+                } else if (t.hasTag(TYPEVAR)) {
+                    return isSubtypeUncheckedInternal(t.getUpperBound(), s, false, warn);
+                } else if (!s.isRaw()) {
+                    Type t2 = asSuper(t, s.tsym);
+                    if (t2 != null && t2.isRaw()) {
+                        if (isReifiable(s)) {
+                            warn.silentWarn(LintCategory.UNCHECKED);
+                        } else {
+                            warn.warn(LintCategory.UNCHECKED);
+                        }
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
                 }
             }
-            return false;
         }
 
         private void checkUnsafeVarargsConversion(Type t, Type s, Warner warn) {
@@ -1093,55 +1094,91 @@ public class Types {
             }
         }
 
-        private void checkNullAssignment(Type t, Type s, Warner warn) {
-            if (s.hasTag(TYPEVAR)) {
-                if (((TypeVar) s).isCaptured()) {
-                    Type lower = s.getLowerBound();
-                    if (lower.hasTag(BOT)) {
-                        if (t.hasTag(BOT)) {
-                            warn.warn(LintCategory.NULL_CAPTURE);
-                        }
-                    } else if (t.tsym != s.tsym) {
-                        checkNullAssignment(t, lower, warn);
-                    }
-                } else if (!((TypeVar) s).isRef()){ // regular universal type variable
-                    if (t.hasTag(BOT)) {
-                        warn.warn(LintCategory.NULL_VARIABLE);
-                    } else if (t.hasTag(TYPEVAR)) {
-                        if (((TypeVar) t).isRef()) {
-                            warn.warn(LintCategory.NULL_NARROWING);
-                        } else {
-                            checkNullAssignment(t.getUpperBound(), s, warn);
-                        }
-                    } else if (t.isIntersection()) {
-                        checkNullAssignment(((IntersectionClassType) t).supertype_field, s, warn);
-                    }
-                }
-            }
-        }
-
     /**
      * Is t a subtype of s?<br>
      * (not defined for Method and ForAll types)
      */
     final public boolean isSubtype(Type t, Type s) {
-        return isSubtype(t, s, true);
+        return subtypeTest(t, s, true).success();
     }
     final public boolean isSubtypeNoCapture(Type t, Type s) {
-        return isSubtype(t, s, false);
+        return subtypeTest(t, s, false).success();
     }
-    public boolean isSubtype(Type t, Type s, boolean capture) {
-        if (t.equalsIgnoreMetadata(s))
-            return true;
+
+    private static class SubtypeConstraints {
+
+        public static final SubtypeConstraints TRUE = new SubtypeConstraints(true);
+        public static final SubtypeConstraints FALSE = new SubtypeConstraints(false);
+        public static final SubtypeConstraints NULL_NARROWING =
+                new SubtypeConstraints(EnumSet.of(LintCategory.NULL_NARROWING));
+        public static final SubtypeConstraints NULL_CAPTURE =
+                new SubtypeConstraints(EnumSet.of(LintCategory.NULL_CAPTURE));
+        public static final SubtypeConstraints NULL_VARIABLE =
+                new SubtypeConstraints(EnumSet.of(LintCategory.NULL_VARIABLE));
+
+        private boolean success;
+        private EnumSet<LintCategory> constraints;
+
+        private SubtypeConstraints(boolean success) {
+            this.success = success;
+            this.constraints = EnumSet.noneOf(LintCategory.class);
+        }
+
+        private SubtypeConstraints(EnumSet<LintCategory> constraints) {
+            this.success = true;
+            this.constraints = constraints;
+        }
+
+        public boolean success() { return success; }
+        public Set<LintCategory> constraints() { return constraints; }
+
+        public SubtypeConstraints and(SubtypeConstraints that) {
+            if (!success || !that.success) {
+                return FALSE;
+            }
+            else if (constraints.isEmpty()) {
+                return that;
+            }
+            else if (that.constraints.isEmpty()) {
+                return this;
+            }
+            else {
+                EnumSet<LintCategory> newConstraints = EnumSet.copyOf(constraints);
+                newConstraints.addAll(that.constraints);
+                return new SubtypeConstraints(newConstraints);
+            }
+        }
+
+        public String toString() {
+            if (!success) return "false";
+            else if (constraints.isEmpty()) return "true";
+            else return constraints.toString();
+        }
+    }
+
+    private void subtypeLog(Type t, Type s, Object val) {
+        if (lint.isEnabled(LintCategory.NULL_NARROWING)) System.out.printf("subtypeTest(%s,%s): %s%n", t, s, val);
+    }
+
+    private SubtypeConstraints subtypeTest(Type t, Type s, boolean capture) {
+        if (t.equalsIgnoreMetadata(s)) {
+            if (t.hasTag(TYPEVAR) && s.hasTag(TYPEVAR) && ((TypeVar) t).isRef() && !((TypeVar) s).isRef()) {
+                return SubtypeConstraints.NULL_NARROWING;
+            } else {
+                return SubtypeConstraints.TRUE;
+            }
+        }
         if (s.isPartial())
-            return isSuperType(s, t);
+            return isSuperType(s, t) ? SubtypeConstraints.TRUE : SubtypeConstraints.FALSE;
 
         if (s.isCompound()) {
+            SubtypeConstraints result = SubtypeConstraints.TRUE;
             for (Type s2 : interfaces(s).prepend(supertype(s))) {
-                if (!isSubtype(t, s2, capture))
-                    return false;
+                SubtypeConstraints constraints = subtypeTest(t, s2, capture);
+                if (!constraints.success()) return SubtypeConstraints.FALSE;
+                result = result.and(constraints);
             }
-            return true;
+            return result;
         }
 
         // Generally, if 's' is a lower-bounded type variable, recur on lower bound; but
@@ -1151,54 +1188,67 @@ public class Types {
             // TODO: JDK-8039198, bounds checking sometimes passes in a wildcard as s
             Type lower = cvarLowerBound(wildLowerBound(s));
             if (s != lower && !lower.hasTag(BOT))
-                return isSubtype(capture ? capture(t) : t, lower, false);
+                return subtypeTest(capture ? capture(t) : t, lower, false);
         }
 
-        return isSubtype.visit(capture ? capture(t) : t, s);
+        return subtypeTestVisitor.visit(capture ? capture(t) : t, s);
     }
     // where
-        private TypeRelation isSubtype = new TypeRelation()
+        private SimpleVisitor<SubtypeConstraints,Type> subtypeTestVisitor = new SimpleVisitor<>()
         {
             @Override
-            public Boolean visitType(Type t, Type s) {
+            public SubtypeConstraints visitType(Type t, Type s) {
                 switch (t.getTag()) {
                  case BYTE:
-                     return (!s.hasTag(CHAR) && t.getTag().isSubRangeOf(s.getTag()));
+                     return (!s.hasTag(CHAR) && t.getTag().isSubRangeOf(s.getTag())) ?
+                             SubtypeConstraints.TRUE : SubtypeConstraints.FALSE;
                  case CHAR:
-                     return (!s.hasTag(SHORT) && t.getTag().isSubRangeOf(s.getTag()));
+                     return (!s.hasTag(SHORT) && t.getTag().isSubRangeOf(s.getTag())) ?
+                             SubtypeConstraints.TRUE : SubtypeConstraints.FALSE;
                  case SHORT: case INT: case LONG:
                  case FLOAT: case DOUBLE:
-                     return t.getTag().isSubRangeOf(s.getTag());
+                     return t.getTag().isSubRangeOf(s.getTag()) ?
+                             SubtypeConstraints.TRUE : SubtypeConstraints.FALSE;
                  case BOOLEAN: case VOID:
-                     return t.hasTag(s.getTag());
+                     return t.hasTag(s.getTag()) ?
+                             SubtypeConstraints.TRUE : SubtypeConstraints.FALSE;
                  case TYPEVAR:
-                     return isSubtypeNoCapture(t.getUpperBound(), s);
+                     return subtypeTest(t.getUpperBound(), s, false);
                  case BOT:
-                     return
-                         s.hasTag(BOT) || (s.hasTag(CLASS) && (!isValue(s) || isValueBased(s))) ||
-                         s.hasTag(ARRAY) || s.hasTag(TYPEVAR);
+                     if (s.hasTag(BOT) || (s.hasTag(CLASS) && (!isValue(s) || isValueBased(s))) ||
+                         s.hasTag(ARRAY) || (s.hasTag(TYPEVAR) && ((TypeVar) s).isRef())) {
+                         return SubtypeConstraints.TRUE;
+                     } else if (s.hasTag(TYPEVAR)) {
+                         if (((TypeVar) s).isCaptured()) {
+                             return SubtypeConstraints.NULL_CAPTURE;
+                         } else {
+                             return SubtypeConstraints.NULL_VARIABLE;
+                         }
+                     } else {
+                         return SubtypeConstraints.FALSE;
+                     }
                  case WILDCARD: //we shouldn't be here - avoids crash (see 7034495)
                  case NONE:
-                     return false;
+                     return SubtypeConstraints.FALSE;
                  default:
-                     throw new AssertionError("isSubtype " + t.getTag());
+                     throw new AssertionError("subtypeTestVisitor " + t.getTag());
                  }
             }
 
             private Set<TypePair> cache = new HashSet<>();
 
-            private boolean containsTypeRecursive(Type t, Type s) {
+            private SubtypeConstraints containsTypeRecursive(Type t, Type s) {
                 TypePair pair = new TypePair(t, s);
                 if (cache.add(pair)) {
                     try {
-                        return containsType(t.getTypeArguments(),
-                                            s.getTypeArguments());
+                        return containsTypeTest(t.getTypeArguments(),
+                                                s.getTypeArguments());
                     } finally {
                         cache.remove(pair);
                     }
                 } else {
-                    return containsType(t.getTypeArguments(),
-                                        rewriteSupers(s).getTypeArguments());
+                    return containsTypeTest(t.getTypeArguments(),
+                                            rewriteSupers(s).getTypeArguments());
                 }
             }
 
@@ -1236,23 +1286,29 @@ public class Types {
             }
 
             @Override
-            public Boolean visitClassType(ClassType t, Type s) {
+            public SubtypeConstraints visitClassType(ClassType t, Type s) {
                 Type sup = asSuper(t, s.tsym);
-                if (sup == null) return false;
+                if (sup == null) return SubtypeConstraints.FALSE;
                 // If t is an intersection, sup might not be a class type
-                if (!sup.hasTag(CLASS)) return isSubtypeNoCapture(sup, s);
-                return sup.tsym == s.tsym
-                     // Check type variable containment
-                    && (!s.isParameterized() || containsTypeRecursive(s, sup))
-                    && isSubtypeNoCapture(sup.getEnclosingType(),
-                                          s.getEnclosingType());
+                if (!sup.hasTag(CLASS)) return subtypeTest(sup, s, false);
+                if (sup.tsym == s.tsym) {
+                    SubtypeConstraints result = SubtypeConstraints.TRUE;
+                    if (s.isParameterized()) {
+                        SubtypeConstraints c = containsTypeRecursive(s, sup);
+                        result = result.and(containsTypeRecursive(s, sup));
+                    }
+                    result = result.and(subtypeTest(sup.getEnclosingType(), s.getEnclosingType(), false));
+                    return result;
+                } else {
+                    return SubtypeConstraints.FALSE;
+                }
             }
 
             @Override
-            public Boolean visitArrayType(ArrayType t, Type s) {
+            public SubtypeConstraints visitArrayType(ArrayType t, Type s) {
                 if (s.hasTag(ARRAY)) {
                     if (t.elemtype.isPrimitive())
-                        return isSameType(t.elemtype, elemtype(s));
+                        return sameTypeTest(t.elemtype, elemtype(s));
                     else {
                         // if T.ref <: S, then T[] <: S[]
                         Type es = elemtype(s);
@@ -1262,7 +1318,7 @@ public class Types {
                             if (isValue(es))
                                 es = es.referenceProjection();  // V <: V, surely
                         }
-                        return isSubtypeNoCapture(et, es);
+                        return subtypeTest(et, es, false);
                     }
                 }
 
@@ -1271,30 +1327,31 @@ public class Types {
                     return sname == names.java_lang_Object
                         || sname == names.java_lang_Cloneable
                         || sname == names.java_io_Serializable
-                        || sname == names.java_lang_IdentityObject;
+                        || sname == names.java_lang_IdentityObject ?
+                            SubtypeConstraints.TRUE : SubtypeConstraints.FALSE;
                 }
 
-                return false;
+                return SubtypeConstraints.FALSE;
             }
 
             @Override
-            public Boolean visitUndetVar(UndetVar t, Type s) {
+            public SubtypeConstraints visitUndetVar(UndetVar t, Type s) {
                 //todo: test against origin needed? or replace with substitution?
                 if (t == s || t.qtype == s || s.hasTag(ERROR) || s.hasTag(UNKNOWN)) {
-                    return true;
+                    return SubtypeConstraints.TRUE;
                 } else if (s.hasTag(BOT)) {
                     //if 's' is 'null' there's no instantiated type U for which
                     //U <: s (but 'null' itself, which is not a valid type)
-                    return false;
+                    return SubtypeConstraints.FALSE;
                 }
 
                 t.addBound(InferenceBound.UPPER, s, Types.this);
-                return true;
+                return SubtypeConstraints.TRUE;
             }
 
             @Override
-            public Boolean visitErrorType(ErrorType t, Type s) {
-                return true;
+            public SubtypeConstraints visitErrorType(ErrorType t, Type s) {
+                return SubtypeConstraints.TRUE;
             }
         };
 
@@ -1404,6 +1461,10 @@ public class Types {
      * Is t the same type as s?
      */
     public boolean isSameType(Type t, Type s) {
+        return sameTypeTest(t, s).success();
+    }
+
+    private SubtypeConstraints sameTypeTest(Type t, Type s) {
         return isSameTypeVisitor.visit(t, s);
     }
     // where
@@ -1412,11 +1473,16 @@ public class Types {
          * Type-equality relation - type variables are considered
          * equals if they share the same object identity.
          */
-        TypeRelation isSameTypeVisitor = new TypeRelation() {
+        SimpleVisitor<SubtypeConstraints,Type> isSameTypeVisitor = new SimpleVisitor<>() {
 
-            public Boolean visitType(Type t, Type s) {
-                if (t.equalsIgnoreMetadata(s))
-                    return true;
+            public SubtypeConstraints visitType(Type t, Type s) {
+                if (t.equalsIgnoreMetadata(s)) {
+                    if (t.hasTag(TYPEVAR) && s.hasTag(TYPEVAR) && ((TypeVar) t).isRef() != ((TypeVar) s).isRef()) {
+                        return SubtypeConstraints.NULL_NARROWING;
+                    } else {
+                        return SubtypeConstraints.TRUE;
+                    }
+                }
 
                 if (s.isPartial())
                     return visit(s, t);
@@ -1424,19 +1490,21 @@ public class Types {
                 switch (t.getTag()) {
                 case BYTE: case CHAR: case SHORT: case INT: case LONG: case FLOAT:
                 case DOUBLE: case BOOLEAN: case VOID: case BOT: case NONE:
-                    return t.hasTag(s.getTag());
+                    return t.hasTag(s.getTag()) ? SubtypeConstraints.TRUE : SubtypeConstraints.FALSE;
                 case TYPEVAR: {
                     if (s.hasTag(TYPEVAR)) {
                         //type-substitution does not preserve type-var types
                         //check that type var symbols and bounds are indeed the same
-                        return t == s;
+                        return t == s ? SubtypeConstraints.TRUE : SubtypeConstraints.FALSE;
                     }
                     else {
                         //special case for s == ? super X, where upper(s) = u
                         //check that u == t, where u has been set by Type.withTypeVar
-                        return s.isSuperBound() &&
-                                !s.isExtendsBound() &&
-                                visit(t, wildUpperBound(s));
+                        if (s.isSuperBound() && !s.isExtendsBound()) {
+                            return visit(t, wildUpperBound(s));
+                        } else {
+                            return SubtypeConstraints.FALSE;
+                        }
                     }
                 }
                 default:
@@ -1445,106 +1513,128 @@ public class Types {
             }
 
             @Override
-            public Boolean visitWildcardType(WildcardType t, Type s) {
+            public SubtypeConstraints visitWildcardType(WildcardType t, Type s) {
                 if (!s.hasTag(WILDCARD)) {
-                    return false;
+                    return SubtypeConstraints.FALSE;
                 } else {
                     WildcardType t2 = (WildcardType)s;
-                    return (t.kind == t2.kind || (t.isExtendsBound() && s.isExtendsBound())) &&
-                            isSameType(t.type, t2.type);
+                    if (t.kind == t2.kind || t.isExtendsBound() && s.isExtendsBound()) {
+                        return sameTypeTest(t.type, t2.type);
+                    } else {
+                        return SubtypeConstraints.FALSE;
+                    }
                 }
             }
 
             @Override
-            public Boolean visitClassType(ClassType t, Type s) {
+            public SubtypeConstraints visitClassType(ClassType t, Type s) {
                 if (t == s)
-                    return true;
+                    return SubtypeConstraints.TRUE;
 
                 if (s.isPartial())
                     return visit(s, t);
 
                 if (s.isSuperBound() && !s.isExtendsBound())
-                    return visit(t, wildUpperBound(s)) && visit(t, wildLowerBound(s));
+                    return visit(t, wildUpperBound(s)).and(visit(t, wildLowerBound(s)));
 
                 if (t.isCompound() && s.isCompound()) {
-                    if (!visit(supertype(t), supertype(s)))
-                        return false;
-
-                    Map<Symbol,Type> tMap = new HashMap<>();
-                    for (Type ti : interfaces(t)) {
-                        if (tMap.containsKey(ti)) {
-                            throw new AssertionError("Malformed intersection");
+                    SubtypeConstraints result = visit(supertype(t), supertype(s));
+                    if (result.success()) {
+                        Map<Symbol, Type> tMap = new HashMap<>();
+                        for (Type ti : interfaces(t)) {
+                            if (tMap.containsKey(ti)) {
+                                throw new AssertionError("Malformed intersection");
+                            }
+                            tMap.put(ti.tsym, ti);
                         }
-                        tMap.put(ti.tsym, ti);
+                        for (Type si : interfaces(s)) {
+                            if (!tMap.containsKey(si.tsym))
+                                return SubtypeConstraints.FALSE;
+                            Type ti = tMap.remove(si.tsym);
+                            result = result.and(visit(ti, si));
+                            if (!result.success()) return SubtypeConstraints.FALSE;
+                        }
+                        if (tMap.isEmpty()) return SubtypeConstraints.FALSE;
+                        return result;
+                    } else {
+                        return SubtypeConstraints.FALSE;
                     }
-                    for (Type si : interfaces(s)) {
-                        if (!tMap.containsKey(si.tsym))
-                            return false;
-                        Type ti = tMap.remove(si.tsym);
-                        if (!visit(ti, si))
-                            return false;
-                    }
-                    return tMap.isEmpty();
                 }
-                return t.tsym == s.tsym
-                    && visit(t.getEnclosingType(), s.getEnclosingType())
-                    && containsTypeEquivalent(t.getTypeArguments(), s.getTypeArguments());
+
+                if (t.tsym == s.tsym) {
+                    SubtypeConstraints result = visit(t.getEnclosingType(), s.getEnclosingType());
+                    if (!result.success()) return SubtypeConstraints.FALSE;
+                    result = result.and(containsTypeEquivalentTest(t.getTypeArguments(), s.getTypeArguments()));
+                    return result;
+                } else {
+                    return SubtypeConstraints.FALSE;
+                }
             }
 
             @Override
-            public Boolean visitArrayType(ArrayType t, Type s) {
+            public SubtypeConstraints visitArrayType(ArrayType t, Type s) {
                 if (t == s)
-                    return true;
+                    return SubtypeConstraints.TRUE;
 
                 if (s.isPartial())
                     return visit(s, t);
 
-                return s.hasTag(ARRAY)
-                    && containsTypeEquivalent(t.elemtype, elemtype(s));
+                if (s.hasTag(ARRAY)) {
+                    return containsTypeEquivalentTest(t.elemtype, elemtype(s));
+                } else {
+                    return SubtypeConstraints.FALSE;
+                }
             }
 
             @Override
-            public Boolean visitMethodType(MethodType t, Type s) {
+            public SubtypeConstraints visitMethodType(MethodType t, Type s) {
                 // isSameType for methods does not take thrown
                 // exceptions into account!
-                return hasSameArgs(t, s) && visit(t.getReturnType(), s.getReturnType());
+                if (hasSameArgs(t, s)) {
+                    return visit(t.getReturnType(), s.getReturnType());
+                } else {
+                    return SubtypeConstraints.FALSE;
+                }
             }
 
             @Override
-            public Boolean visitPackageType(PackageType t, Type s) {
-                return t == s;
+            public SubtypeConstraints visitPackageType(PackageType t, Type s) {
+                return t == s ? SubtypeConstraints.TRUE : SubtypeConstraints.FALSE;
             }
 
             @Override
-            public Boolean visitForAll(ForAll t, Type s) {
+            public SubtypeConstraints visitForAll(ForAll t, Type s) {
                 if (!s.hasTag(FORALL)) {
-                    return false;
+                    return SubtypeConstraints.FALSE;
                 }
 
                 ForAll forAll = (ForAll)s;
-                return hasSameBounds(t, forAll)
-                    && visit(t.qtype, subst(forAll.qtype, forAll.tvars, t.tvars));
+                if (hasSameBounds(t, forAll)) {
+                    return visit(t.qtype, subst(forAll.qtype, forAll.tvars, t.tvars));
+                } else {
+                    return SubtypeConstraints.FALSE;
+                }
             }
 
             @Override
-            public Boolean visitUndetVar(UndetVar t, Type s) {
+            public SubtypeConstraints visitUndetVar(UndetVar t, Type s) {
                 if (s.hasTag(WILDCARD)) {
                     // FIXME, this might be leftovers from before capture conversion
-                    return false;
+                    return SubtypeConstraints.FALSE;
                 }
 
                 if (t == s || t.qtype == s || s.hasTag(ERROR) || s.hasTag(UNKNOWN)) {
-                    return true;
+                    return SubtypeConstraints.TRUE;
                 }
 
                 t.addBound(InferenceBound.EQ, s, Types.this);
 
-                return true;
+                return SubtypeConstraints.TRUE;
             }
 
             @Override
-            public Boolean visitErrorType(ErrorType t, Type s) {
-                return true;
+            public SubtypeConstraints visitErrorType(ErrorType t, Type s) {
+                return SubtypeConstraints.TRUE;
             }
         };
 
@@ -1582,13 +1672,17 @@ public class Types {
         }
     }
 
-    boolean containsType(List<Type> ts, List<Type> ss) {
-        while (ts.nonEmpty() && ss.nonEmpty()
-               && containsType(ts.head, ss.head)) {
+    private SubtypeConstraints containsTypeTest(List<Type> ts, List<Type> ss) {
+        SubtypeConstraints result = SubtypeConstraints.TRUE;
+        while (ts.nonEmpty() && ss.nonEmpty()) {
+            SubtypeConstraints constraints = containsTypeTest(ts.head, ss.head);
+            if (!constraints.success()) return SubtypeConstraints.FALSE;
+            result = result.and(constraints);
             ts = ts.tail;
             ss = ss.tail;
         }
-        return ts.isEmpty() && ss.isEmpty();
+        if (!ts.isEmpty() || !ss.isEmpty()) return SubtypeConstraints.FALSE;
+        return result;
     }
 
     /**
@@ -1617,16 +1711,20 @@ public class Types {
      * @param s a type
      */
     public boolean containsType(Type t, Type s) {
-        return containsType.visit(t, s);
+        return containsTypeTest(t, s).success();
+    }
+
+    private SubtypeConstraints containsTypeTest(Type t, Type s) {
+        return containsTypeTestVisitor.visit(t, s);
     }
     // where
-        private TypeRelation containsType = new TypeRelation() {
+        private SimpleVisitor<SubtypeConstraints,Type> containsTypeTestVisitor = new SimpleVisitor<>() {
 
-            public Boolean visitType(Type t, Type s) {
+            public SubtypeConstraints visitType(Type t, Type s) {
                 if (s.isPartial())
-                    return containedBy(s, t);
+                    return containedBy(s, t) ? SubtypeConstraints.TRUE : SubtypeConstraints.FALSE;
                 else
-                    return isSameType(t, s);
+                    return sameTypeTest(t, s);
             }
 
 //            void debugContainsType(WildcardType t, Type s) {
@@ -1644,9 +1742,9 @@ public class Types {
 //            }
 
             @Override
-            public Boolean visitWildcardType(WildcardType t, Type s) {
+            public SubtypeConstraints visitWildcardType(WildcardType t, Type s) {
                 if (s.isPartial())
-                    return containedBy(s, t);
+                    return containedBy(s, t) ? SubtypeConstraints.TRUE : SubtypeConstraints.FALSE;
                 else {
 //                    debugContainsType(t, s);
 
@@ -1658,25 +1756,35 @@ public class Types {
                     */
 
                     // ---------------------------------------------------------------------------
-                    return isSameWildcard(t, s)
-                        || isCaptureOf(s, t)
-                        || ((t.isExtendsBound() || isSubtypeNoCapture(wildLowerBound(t), wildLowerBound(s))) &&
-                            (t.isSuperBound() || isSubtypeNoCapture(wildUpperBound(s), wildUpperBound(t))));
+
+                    if (isSameWildcard(t, s) || isCaptureOf(s, t)) return SubtypeConstraints.TRUE;
+                    SubtypeConstraints result = SubtypeConstraints.TRUE;
+                    if (!t.isExtendsBound()) {
+                        SubtypeConstraints constraints = subtypeTest(wildLowerBound(t), wildLowerBound(s), false);
+                        if (!constraints.success()) return SubtypeConstraints.FALSE;
+                        result = result.and(constraints);
+                    }
+                    if (!t.isSuperBound()) {
+                        SubtypeConstraints constraints = subtypeTest(wildUpperBound(s), wildUpperBound(t), false);
+                        if (!constraints.success()) return SubtypeConstraints.FALSE;
+                        result = result.and(constraints);
+                    }
+                    return result;
                 }
             }
 
             @Override
-            public Boolean visitUndetVar(UndetVar t, Type s) {
+            public SubtypeConstraints visitUndetVar(UndetVar t, Type s) {
                 if (!s.hasTag(WILDCARD)) {
-                    return isSameType(t, s);
+                    return sameTypeTest(t, s);
                 } else {
-                    return false;
+                    return SubtypeConstraints.FALSE;
                 }
             }
 
             @Override
-            public Boolean visitErrorType(ErrorType t, Type s) {
-                return true;
+            public SubtypeConstraints visitErrorType(ErrorType t, Type s) {
+                return SubtypeConstraints.FALSE;
             }
         };
 
@@ -1694,12 +1802,20 @@ public class Types {
     }
 
     public boolean containsTypeEquivalent(List<Type> ts, List<Type> ss) {
-        while (ts.nonEmpty() && ss.nonEmpty()
-               && containsTypeEquivalent(ts.head, ss.head)) {
+        return containsTypeEquivalentTest(ts, ss).success();
+    }
+
+    private SubtypeConstraints containsTypeEquivalentTest(List<Type> ts, List<Type> ss) {
+        SubtypeConstraints result = SubtypeConstraints.TRUE;
+        while (ts.nonEmpty() && ss.nonEmpty()) {
+            SubtypeConstraints constraints = containsTypeEquivalentTest(ts.head, ss.head);
+            if (!constraints.success()) return SubtypeConstraints.FALSE;
+            result = result.and(constraints);
             ts = ts.tail;
             ss = ss.tail;
         }
-        return ts.isEmpty() && ss.isEmpty();
+        if (!ts.isEmpty() || !ss.isEmpty()) return SubtypeConstraints.FALSE;
+        return result;
     }
     // </editor-fold>
 
@@ -3383,7 +3499,7 @@ public class Types {
             @Override
             public Boolean visitMethodType(MethodType t, Type s) {
                 return s.hasTag(METHOD)
-                    && containsTypeEquivalent(t.argtypes, s.getParameterTypes());
+                    && containsTypeEquivalentTest(t.argtypes, s.getParameterTypes()).success();
             }
 
             @Override
@@ -4670,7 +4786,7 @@ public class Types {
             if (b.isParameterized() &&
                     (!(isUnbounded(b) ||
                     isSubtype(from, b) ||
-                    ((subFrom != null) && containsType(b.allparams(), subFrom.allparams()))))) {
+                    ((subFrom != null) && containsTypeTest(b.allparams(), subFrom.allparams()).success())))) {
                 return true;
             }
         }
@@ -4689,9 +4805,15 @@ public class Types {
         return cl;
     }
 
-    private boolean containsTypeEquivalent(Type t, Type s) {
-        return isSameType(t, s) || // shortcut
-            containsType(t, s) && containsType(s, t);
+    private SubtypeConstraints containsTypeEquivalentTest(Type t, Type s) {
+        SubtypeConstraints result = sameTypeTest(t, s); // shortcut
+        if (result.success()) return result;
+        else {
+            result = containsTypeTest(t, s);
+            if (!result.success()) return SubtypeConstraints.FALSE;
+            result = result.and(containsTypeTest(s, t));
+            return result;
+        }
     }
 
     // <editor-fold defaultstate="collapsed" desc="adapt">
