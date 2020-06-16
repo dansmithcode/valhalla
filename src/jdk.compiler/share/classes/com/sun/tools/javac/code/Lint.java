@@ -107,10 +107,12 @@ public class Lint
         if (options.isSet(Option.XLINT) || options.isSet(Option.XLINT_CUSTOM, "all")) {
             // If -Xlint or -Xlint:all is given, enable all categories by default
             values = EnumSet.allOf(LintCategory.class);
-            values.remove(LintCategory.NULL_VARIABLE);
-            values.remove(LintCategory.NULL_CAPTURE);
-            values.remove(LintCategory.NULL_NARROWING);
-            values.remove(LintCategory.NULL_DEFAULT);
+            if (!options.isSet("nullwarnings")) {
+                values.remove(LintCategory.NULL_VARIABLE);
+                values.remove(LintCategory.NULL_CAPTURE);
+                values.remove(LintCategory.NULL_NARROWING);
+                values.remove(LintCategory.NULL_DEFAULT);
+            }
         } else if (options.isSet(Option.XLINT_CUSTOM, "none")) {
             // if -Xlint:none is given, disable all categories by default
             values = EnumSet.noneOf(LintCategory.class);
