@@ -2433,7 +2433,10 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
 
         @Override
         public Type constType(Object value) {
-            return this;
+            if (value == null) return this;
+            else return new BottomType() {
+              public Object constValue() { return value; }
+            };
         }
 
         @Override
