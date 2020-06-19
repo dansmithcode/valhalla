@@ -697,7 +697,9 @@ public class Check {
         if (!tree.type.isErroneous()
                 && types.isSameType(tree.expr.type, tree.clazz.type)
                 && !(ignoreAnnotatedCasts && TreeInfo.containsTypeAnnotation(tree.clazz))
-                && !is292targetTypeCast(tree)) {
+                && !is292targetTypeCast(tree)
+                && !(tree.expr.type.hasTag(TYPEVAR) && tree.clazz.type.hasTag(TYPEVAR)
+                     && ((TypeVar) tree.expr.type).isRef() != ((TypeVar) tree.clazz.type).isRef())) {
             deferredLintHandler.report(() -> {
                 if (lint.isEnabled(LintCategory.CAST))
                     log.warning(LintCategory.CAST,

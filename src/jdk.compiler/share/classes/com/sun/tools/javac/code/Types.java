@@ -1219,7 +1219,9 @@ public class Types {
                          s.hasTag(ARRAY) || (s.hasTag(TYPEVAR) && ((TypeVar) s).isRef())) {
                          return SubtypeConstraints.TRUE;
                      } else if (s.hasTag(TYPEVAR)) {
-                         if (((TypeVar) s).isCaptured()) {
+                         if (t.constValue() == "default") {
+                             return SubtypeConstraints.TRUE;
+                         } else if (((TypeVar) s).isCaptured()) {
                              return SubtypeConstraints.NULL_CAPTURE;
                          } else {
                              return SubtypeConstraints.NULL_VARIABLE;

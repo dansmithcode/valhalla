@@ -4203,7 +4203,7 @@ public class Attr extends JCTree.Visitor {
                 elt = ((ArrayType)elt).elemtype;
             if (elt.hasTag(TYPEVAR)) {
                 if (tree.name == names._default) {
-                    result = check(tree, litType(BOT).constType(null),
+                    result = check(tree, litType(BOT).constType("default"),
                             KindSelector.VAL, resultInfo);
                 } else {
                     log.error(tree.pos(), Errors.TypeVarCantBeDeref);
