@@ -508,12 +508,12 @@ class DateTimeTextProvider {
      * @throws NullPointerException if key or locale is null
      */
     @SuppressWarnings("unchecked")
-    static <T> T getLocalizedResource(String key, Locale locale) {
+    static <T> T.ref getLocalizedResource(String key, Locale locale) {
         LocaleResources lr = LocaleProviderAdapter.getResourceBundleBased()
                                     .getLocaleResources(
                                         CalendarDataUtility.findRegionOverride(locale));
         ResourceBundle rb = lr.getJavaTimeFormatData();
-        return rb.containsKey(key) ? (T) rb.getObject(key) : null;
+        return rb.containsKey(key) ? (T.ref) rb.getObject(key) : null;
     }
 
     /**

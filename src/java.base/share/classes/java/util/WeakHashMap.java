@@ -332,7 +332,7 @@ public class WeakHashMap<K,V>
                             prev.next = next;
                         // Must not null out e.next;
                         // stale entries may be in use by a HashIterator
-                        e.value = null; // Help GC
+                        e.value = V.default; // Help GC
                         size--;
                         break;
                     }
@@ -392,7 +392,7 @@ public class WeakHashMap<K,V>
      *
      * @see #put(Object, Object)
      */
-    public V get(Object key) {
+    public V.ref get(Object key) {
         Object k = maskNull(key);
         int h = hash(k);
         Entry<K,V>[] tab = getTable();
@@ -445,7 +445,7 @@ public class WeakHashMap<K,V>
      *         (A {@code null} return can also indicate that the map
      *         previously associated {@code null} with {@code key}.)
      */
-    public V put(K key, V value) {
+    public V.ref put(K key, V value) {
         Object k = maskNull(key);
         int h = hash(k);
         Entry<K,V>[] tab = getTable();
@@ -518,7 +518,7 @@ public class WeakHashMap<K,V>
                 Object key = e.get();
                 if (key == null) {
                     e.next = null;  // Help GC
-                    e.value = null; //  "   "
+                    e.value = V.default; //  "   "
                     size--;
                 } else {
                     int i = indexFor(e.hash, dest.length);
@@ -587,7 +587,7 @@ public class WeakHashMap<K,V>
      * @return the previous value associated with {@code key}, or
      *         {@code null} if there was no mapping for {@code key}
      */
-    public V remove(Object key) {
+    public V.ref remove(Object key) {
         Object k = maskNull(key);
         int h = hash(k);
         Entry<K,V>[] tab = getTable();

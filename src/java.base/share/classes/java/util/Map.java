@@ -240,7 +240,7 @@ public interface Map<K, V> {
      *         does not permit null keys
      * (<a href="{@docRoot}/java.base/java/util/Collection.html#optional-restrictions">optional</a>)
      */
-    V get(Object key);
+    V.ref get(Object key);
 
     // Modification Operations
 
@@ -268,7 +268,7 @@ public interface Map<K, V> {
      * @throws IllegalArgumentException if some property of the specified key
      *         or value prevents it from being stored in this map
      */
-    V put(K key, V value);
+    V.ref put(K key, V value);
 
     /**
      * Removes the mapping for a key from this map if it is present
@@ -300,7 +300,7 @@ public interface Map<K, V> {
      *         map does not permit null keys
      * (<a href="{@docRoot}/java.base/java/util/Collection.html#optional-restrictions">optional</a>)
      */
-    V remove(Object key);
+    V.ref remove(Object key);
 
 
     // Bulk Operations
@@ -615,9 +615,9 @@ public interface Map<K, V> {
      * @since 1.8
      */
     default V getOrDefault(Object key, V defaultValue) {
-        V v;
+        V.ref v;
         return (((v = get(key)) != null) || containsKey(key))
-            ? v
+            ? (V) v
             : defaultValue;
     }
 
@@ -768,8 +768,8 @@ public interface Map<K, V> {
      *         (<a href="{@docRoot}/java.base/java/util/Collection.html#optional-restrictions">optional</a>)
      * @since 1.8
      */
-    default V putIfAbsent(K key, V value) {
-        V v = get(key);
+    default V.ref putIfAbsent(K key, V value) {
+        V.ref v = get(key);
         if (v == null) {
             v = put(key, value);
         }
@@ -911,8 +911,8 @@ public interface Map<K, V> {
      *         or value prevents it from being stored in this map
      * @since 1.8
      */
-    default V replace(K key, V value) {
-        V curValue;
+    default V.ref replace(K key, V value) {
+        V.ref curValue;
         if (((curValue = get(key)) != null) || containsKey(key)) {
             curValue = put(key, value);
         }
@@ -996,16 +996,16 @@ public interface Map<K, V> {
     default V computeIfAbsent(K key,
             Function<? super K, ? extends V> mappingFunction) {
         Objects.requireNonNull(mappingFunction);
-        V v;
-        if ((v = get(key)) == null) {
-            V newValue;
-            if ((newValue = mappingFunction.apply(key)) != null) {
+        V.ref v = get(key);
+        if (v == null) {
+            V newValue = mappingFunction.apply(key);
+            if (newValue != null) {
                 put(key, newValue);
-                return newValue;
             }
+            return newValue;
+        } else {
+            return (V) v;
         }
-
-        return v;
     }
 
     /**
@@ -1070,12 +1070,12 @@ public interface Map<K, V> {
      *         (<a href="{@docRoot}/java.base/java/util/Collection.html#optional-restrictions">optional</a>)
      * @since 1.8
      */
-    default V computeIfPresent(K key,
+    default V.ref computeIfPresent(K key,
             BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         Objects.requireNonNull(remappingFunction);
-        V oldValue;
-        if ((oldValue = get(key)) != null) {
-            V newValue = remappingFunction.apply(key, oldValue);
+        V.ref oldValue = get(key);
+        if (oldValue != null) {
+            V newValue = remappingFunction.apply(key, (V) oldValue);
             if (newValue != null) {
                 put(key, newValue);
                 return newValue;
@@ -1163,9 +1163,9 @@ public interface Map<K, V> {
      * @since 1.8
      */
     default V compute(K key,
-            BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+            BiFunction<? super K, ? super V.ref, ? extends V> remappingFunction) {
         Objects.requireNonNull(remappingFunction);
-        V oldValue = get(key);
+        V.ref oldValue = get(key);
 
         V newValue = remappingFunction.apply(key, oldValue);
         if (newValue == null) {
@@ -1173,16 +1173,13 @@ public interface Map<K, V> {
             if (oldValue != null || containsKey(key)) {
                 // something to remove
                 remove(key);
-                return null;
-            } else {
-                // nothing to do. Leave things as they were.
-                return null;
+
             }
         } else {
             // add or replace old mapping
             put(key, newValue);
-            return newValue;
         }
+        return newValue;
     }
 
     /**
@@ -1264,9 +1261,9 @@ public interface Map<K, V> {
             BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
         Objects.requireNonNull(remappingFunction);
         Objects.requireNonNull(value);
-        V oldValue = get(key);
+        V.ref oldValue = get(key);
         V newValue = (oldValue == null) ? value :
-                   remappingFunction.apply(oldValue, value);
+                   remappingFunction.apply((V) oldValue, value);
         if (newValue == null) {
             remove(key);
         } else {

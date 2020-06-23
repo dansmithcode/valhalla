@@ -553,7 +553,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      *
      * @see #put(Object, Object)
      */
-    public V get(Object key) {
+    public V.ref get(Object key) {
         Node<K,V> e;
         return (e = getNode(key)) == null ? null : e.value;
     }
@@ -794,7 +794,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      *         (A {@code null} return can also indicate that the map
      *         previously associated {@code null} with {@code key}.)
      */
-    public V remove(Object key) {
+    public V.ref remove(Object key) {
         Node<K,V> e;
         return (e = removeNode(hash(key), key, null, false, true)) == null ?
             null : e.value;
@@ -920,15 +920,16 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * @param <T> type of array elements
      * @return an array ready to be filled and returned from {@code toArray()} method.
      */
-    @SuppressWarnings("unchecked")
     final <T> T[] prepareArray(T[] a) {
         int size = this.size;
         if (a.length < size) {
-            return (T[]) java.lang.reflect.Array
-                    .newInstance(a.getClass().getComponentType(), size);
+            @SuppressWarnings("unchecked")
+            T[] result = (T[]) java.lang.reflect.Array
+                               .newInstance(a.getClass().getComponentType(), size);
+            return result;
         }
         if (a.length > size) {
-            a[size] = null;
+            ((Object[]) a)[size] = null;
         }
         return a;
     }
@@ -1166,7 +1167,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     @Override
-    public V replace(K key, V value) {
+    public V.ref replace(K key, V value) {
         Node<K,V> e;
         if ((e = getNode(key)) != null) {
             V oldValue = e.value;

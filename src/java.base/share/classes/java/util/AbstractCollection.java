@@ -180,8 +180,8 @@ public abstract class AbstractCollection<E> implements Collection<E> {
     public <T> T[] toArray(T[] a) {
         // Estimate size of array; be prepared to see more or fewer elements
         int size = size();
-        T[] r = a.length >= size ? a :
-                  (T[])java.lang.reflect.Array
+        Object[] r = a.length >= size ? a :
+                  (Object[])java.lang.reflect.Array
                   .newInstance(a.getClass().getComponentType(), size);
         Iterator<E> it = iterator();
 
@@ -190,19 +190,19 @@ public abstract class AbstractCollection<E> implements Collection<E> {
                 if (a == r) {
                     r[i] = null; // null-terminate
                 } else if (a.length < i) {
-                    return Arrays.copyOf(r, i);
+                    return (T[]) Arrays.copyOf(r, i);
                 } else {
                     System.arraycopy(r, 0, a, 0, i);
                     if (a.length > i) {
-                        a[i] = null;
+                        ((Object[]) a)[i] = null;
                     }
                 }
                 return a;
             }
-            r[i] = (T)it.next();
+            r[i] = it.next();
         }
-        // more elements than expected
-        return it.hasNext() ? finishToArray(r, it) : r;
+        // check for more elements than expected
+        return (T[]) (it.hasNext() ? finishToArray(r, it) : r);
     }
 
     /**
@@ -215,8 +215,7 @@ public abstract class AbstractCollection<E> implements Collection<E> {
      * @return array containing the elements in the given array, plus any
      *         further elements returned by the iterator, trimmed to size
      */
-    @SuppressWarnings("unchecked")
-    private static <T> T[] finishToArray(T[] r, Iterator<?> it) {
+    private static Object[] finishToArray(Object[] r, Iterator<?> it) {
         int len = r.length;
         int i = len;
         while (it.hasNext()) {
@@ -226,7 +225,7 @@ public abstract class AbstractCollection<E> implements Collection<E> {
                         (len >> 1) + 1 /* preferred growth */);
                 r = Arrays.copyOf(r, len);
             }
-            r[i++] = (T)it.next();
+            r[i++] = it.next();
         }
         // trim if overallocated
         return (i == len) ? r : Arrays.copyOf(r, i);

@@ -1215,7 +1215,7 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
         Objects.requireNonNull(f);
         Spliterator<T> spliterator = new Spliterators.AbstractSpliterator<>(Long.MAX_VALUE,
                Spliterator.ORDERED | Spliterator.IMMUTABLE) {
-            T prev;
+            T.ref prev;
             boolean started;
 
             @Override
@@ -1223,12 +1223,13 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
                 Objects.requireNonNull(action);
                 T t;
                 if (started)
-                    t = f.apply(prev);
+                    t = f.apply((T) prev);
                 else {
                     t = seed;
                     started = true;
                 }
-                action.accept(prev = t);
+                prev = t;
+                action.accept(t);
                 return true;
             }
         };
@@ -1278,17 +1279,17 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
         Objects.requireNonNull(hasNext);
         Spliterator<T> spliterator = new Spliterators.AbstractSpliterator<>(Long.MAX_VALUE,
                Spliterator.ORDERED | Spliterator.IMMUTABLE) {
-            T prev;
+            T.ref prev;
             boolean started, finished;
 
-            @Override
+            @Override @SuppressWarnings("cast")
             public boolean tryAdvance(Consumer<? super T> action) {
                 Objects.requireNonNull(action);
                 if (finished)
                     return false;
                 T t;
                 if (started)
-                    t = next.apply(prev);
+                    t = next.apply((T) prev);
                 else {
                     t = seed;
                     started = true;
@@ -1298,7 +1299,8 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
                     finished = true;
                     return false;
                 }
-                action.accept(prev = t);
+                prev = t;
+                action.accept(t);
                 return true;
             }
 
@@ -1308,7 +1310,8 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
                 if (finished)
                     return;
                 finished = true;
-                T t = started ? next.apply(prev) : seed;
+                @SuppressWarnings("cast")
+                T t = started ? next.apply((T) prev) : seed;
                 prev = null;
                 while (hasNext.test(t)) {
                     action.accept(t);

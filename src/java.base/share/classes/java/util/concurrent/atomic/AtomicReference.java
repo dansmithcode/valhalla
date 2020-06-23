@@ -73,7 +73,7 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * Creates a new AtomicReference with null initial value.
+     * Creates a new AtomicReference with default initial value.
      */
     public AtomicReference() {
     }
@@ -182,13 +182,13 @@ public class AtomicReference<V> implements java.io.Serializable {
      * @since 1.8
      */
     public final V getAndUpdate(UnaryOperator<V> updateFunction) {
-        V prev = get(), next = null;
-        for (boolean haveNext = false;;) {
-            if (!haveNext)
-                next = updateFunction.apply(prev);
+        V prev = get();
+        V next = updateFunction.apply(prev);
+        while (true) {
             if (weakCompareAndSetVolatile(prev, next))
                 return prev;
-            haveNext = (prev == (prev = get()));
+            if (prev != (prev = get()))
+                next = updateFunction.apply(prev);
         }
     }
 
@@ -204,13 +204,13 @@ public class AtomicReference<V> implements java.io.Serializable {
      * @since 1.8
      */
     public final V updateAndGet(UnaryOperator<V> updateFunction) {
-        V prev = get(), next = null;
-        for (boolean haveNext = false;;) {
-            if (!haveNext)
-                next = updateFunction.apply(prev);
+        V prev = get();
+        V next = updateFunction.apply(prev);
+        while (true) {
             if (weakCompareAndSetVolatile(prev, next))
                 return next;
-            haveNext = (prev == (prev = get()));
+            if (prev != (prev = get()))
+                next = updateFunction.apply(prev);
         }
     }
 
@@ -231,13 +231,13 @@ public class AtomicReference<V> implements java.io.Serializable {
      */
     public final V getAndAccumulate(V x,
                                     BinaryOperator<V> accumulatorFunction) {
-        V prev = get(), next = null;
-        for (boolean haveNext = false;;) {
-            if (!haveNext)
-                next = accumulatorFunction.apply(prev, x);
+        V prev = get();
+        V next = accumulatorFunction.apply(prev, x);
+        while (true) {
             if (weakCompareAndSetVolatile(prev, next))
                 return prev;
-            haveNext = (prev == (prev = get()));
+            if (prev != (prev = get()))
+                next = accumulatorFunction.apply(prev, next);
         }
     }
 
@@ -258,13 +258,13 @@ public class AtomicReference<V> implements java.io.Serializable {
      */
     public final V accumulateAndGet(V x,
                                     BinaryOperator<V> accumulatorFunction) {
-        V prev = get(), next = null;
-        for (boolean haveNext = false;;) {
-            if (!haveNext)
-                next = accumulatorFunction.apply(prev, x);
+        V prev = get();
+        V next = accumulatorFunction.apply(prev, x);
+        while (true) {
             if (weakCompareAndSetVolatile(prev, next))
                 return next;
-            haveNext = (prev == (prev = get()));
+            if (prev != (prev = get()))
+                next = accumulatorFunction.apply(prev, next);
         }
     }
 

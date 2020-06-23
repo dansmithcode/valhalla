@@ -125,7 +125,7 @@ public class ThreadLocal<T> {
      *
      * @return the initial value for this thread-local
      */
-    protected T initialValue() {
+    protected T.ref initialValue() {
         return null;
     }
 
@@ -158,7 +158,7 @@ public class ThreadLocal<T> {
      *
      * @return the current thread's value of this thread-local
      */
-    public T get() {
+    public T.ref get() {
         Thread t = Thread.currentThread();
         ThreadLocalMap map = getMap(t);
         if (map != null) {
@@ -191,8 +191,8 @@ public class ThreadLocal<T> {
      *
      * @return the initial value
      */
-    private T setInitialValue() {
-        T value = initialValue();
+    private T.ref setInitialValue() {
+        T.ref value = initialValue();
         Thread t = Thread.currentThread();
         ThreadLocalMap map = getMap(t);
         if (map != null) {
@@ -261,7 +261,7 @@ public class ThreadLocal<T> {
      * @param t the current thread
      * @param firstValue value for the initial entry of the map
      */
-    void createMap(Thread t, T firstValue) {
+    void createMap(Thread t, T.ref firstValue) {
         t.threadLocals = new ThreadLocalMap(this, firstValue);
     }
 

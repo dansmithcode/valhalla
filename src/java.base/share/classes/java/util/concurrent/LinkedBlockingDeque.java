@@ -949,21 +949,23 @@ public class LinkedBlockingDeque<E>
      *         this deque
      * @throws NullPointerException if the specified array is null
      */
-    @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            if (a.length < count)
-                a = (T[])java.lang.reflect.Array.newInstance
+            Object[] r = a;
+            if (r.length < count)
+                r = (Object[])java.lang.reflect.Array.newInstance
                     (a.getClass().getComponentType(), count);
 
             int k = 0;
             for (Node<E> p = first; p != null; p = p.next)
-                a[k++] = (T)p.item;
-            if (a.length > k)
-                a[k] = null;
-            return a;
+                r[k++] = p.item;
+            if (r.length > k)
+                r[k] = null;
+            @SuppressWarnings("unchecked")
+            T[] result = (T[]) r;
+            return result;
         } finally {
             lock.unlock();
         }

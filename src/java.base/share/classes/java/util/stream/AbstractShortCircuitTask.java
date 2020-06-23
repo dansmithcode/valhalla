@@ -47,7 +47,7 @@ abstract class AbstractShortCircuitTask<P_IN, P_OUT, R,
      * The result for this computation; this is shared among all tasks and set
      * exactly once
      */
-    protected final AtomicReference<R> sharedResult;
+    protected final AtomicReference<R.ref> sharedResult;
 
     /**
      * Indicates whether this task has been canceled.  Tasks may cancel other
@@ -172,7 +172,7 @@ abstract class AbstractShortCircuitTask<P_IN, P_OUT, R,
      * Retrieves the local result for this task
      */
     @Override
-    public R getRawResult() {
+    public R.ref getRawResult() {
         return getLocalResult();
     }
 
@@ -181,7 +181,7 @@ abstract class AbstractShortCircuitTask<P_IN, P_OUT, R,
      * retrieves the shared result instead.
      */
     @Override
-    public R getLocalResult() {
+    public R.ref getLocalResult() {
         if (isRoot()) {
             R answer = sharedResult.get();
             return (answer == null) ? getEmptyResult() : answer;

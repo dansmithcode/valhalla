@@ -264,9 +264,9 @@ public abstract class Enum<E extends Enum<E>>
      */
     public static <T extends Enum<T>> T valueOf(Class<T> enumType,
                                                 String name) {
-        T result = enumType.enumConstantDirectory().get(name);
+        T.ref result = enumType.enumConstantDirectory().get(name);
         if (result != null)
-            return result;
+            return (T) result;
         if (name == null)
             throw new NullPointerException("Name is null");
         throw new IllegalArgumentException(

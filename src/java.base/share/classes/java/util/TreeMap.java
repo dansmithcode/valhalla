@@ -275,7 +275,7 @@ public class TreeMap<K,V>
      *         and this map uses natural ordering, or its comparator
      *         does not permit null keys
      */
-    public V get(Object key) {
+    public V.ref get(Object key) {
         Entry<K,V> p = getEntry(key);
         return (p==null ? null : p.value);
     }
@@ -869,7 +869,7 @@ public class TreeMap<K,V>
      *         and this map uses natural ordering, or its comparator
      *         does not permit null keys
      */
-    public V remove(Object key) {
+    public V.ref remove(Object key) {
         Entry<K,V> p = getEntry(key);
         if (p == null)
             return null;
@@ -1256,7 +1256,7 @@ public class TreeMap<K,V>
     }
 
     @Override
-    public V replace(K key, V value) {
+    public V.ref replace(K key, V value) {
         Entry<K,V> p = getEntry(key);
         if (p!=null) {
             V oldValue = p.value;
@@ -1790,11 +1790,11 @@ public class TreeMap<K,V>
             return m.put(key, value);
         }
 
-        public final V get(Object key) {
+        public final V.ref get(Object key) {
             return !inRange(key) ? null :  m.get(key);
         }
 
-        public final V remove(Object key) {
+        public final V.ref remove(Object key) {
             return !inRange(key) ? null : m.remove(key);
         }
 

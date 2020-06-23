@@ -48,8 +48,8 @@ public abstract class LocaleObjectCache<K, V> {
         map = new ConcurrentHashMap<>(initialCapacity, loadFactor, concurrencyLevel);
     }
 
-    public V get(K key) {
-        V value = null;
+    public V.ref get(K key) {
+        V.ref value = null;
 
         cleanStaleEntries();
         CacheEntry<K, V> entry = map.get(key);
@@ -79,7 +79,7 @@ public abstract class LocaleObjectCache<K, V> {
         return value;
     }
 
-    protected V put(K key, V value) {
+    protected V.ref put(K key, V value) {
         CacheEntry<K, V> entry = new CacheEntry<>(key, value, queue);
         CacheEntry<K, V> oldEntry = map.put(key, entry);
         return (oldEntry == null) ? null : oldEntry.get();

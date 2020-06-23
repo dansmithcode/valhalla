@@ -1070,7 +1070,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         return toArray(Object[].class);
     }
 
-    private <T> T[] toArray(Class<T[]> klazz) {
+    private <T> T[] toArray(Class<? extends T[]> klazz) {
         final Object[] es = elements;
         final T[] a;
         final int head = this.head, tail = this.tail, end;
@@ -1127,7 +1127,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     public <T> T[] toArray(T[] a) {
         final int size;
         if ((size = size()) > a.length)
-            return toArray((Class<T[]>) a.getClass());
+            return toArray((Class<? extends T[]>) a.getClass());
         final Object[] es = elements;
         for (int i = head, j = 0, len = Math.min(size, es.length - i);
              ; i = 0, len = tail) {
@@ -1135,7 +1135,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             if ((j += len) == size) break;
         }
         if (size < a.length)
-            a[size] = null;
+            ((Object[]) a)[size] = null;
         return a;
     }
 

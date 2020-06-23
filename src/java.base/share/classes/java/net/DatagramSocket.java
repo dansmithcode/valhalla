@@ -1091,7 +1091,7 @@ public class DatagramSocket implements java.io.Closeable {
      * @throws SocketException if an exception occurs while creating or binding the
      *                         the delegate.
      */
-    static <T extends DatagramSocket> T createDelegate(SocketAddress bindaddr, Class<T> type)
+    static <T extends DatagramSocket> T.ref createDelegate(SocketAddress bindaddr, Class<T> type)
             throws SocketException {
 
         // Temporary solution until JDK-8237352 is addressed

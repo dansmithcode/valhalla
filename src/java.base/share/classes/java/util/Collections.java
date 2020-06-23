@@ -1542,7 +1542,7 @@ public class Collections {
         }
 
         @Override
-        public V replace(K key, V value) {
+        public V.ref replace(K key, V value) {
             throw new UnsupportedOperationException();
         }
 
@@ -1710,7 +1710,7 @@ public class Collections {
 
                 System.arraycopy(arr, 0, a, 0, arr.length);
                 if (a.length > arr.length)
-                    a[arr.length] = null;
+                    ((Object[]) a)[arr.length] = null;
                 return a;
             }
 
@@ -2713,7 +2713,7 @@ public class Collections {
             synchronized (mutex) {return m.replace(key, oldValue, newValue);}
         }
         @Override
-        public V replace(K key, V value) {
+        public V.ref replace(K key, V value) {
             synchronized (mutex) {return m.replace(key, value);}
         }
         @Override
@@ -3759,7 +3759,7 @@ public class Collections {
         }
 
         @Override
-        public V replace(K key, V value) {
+        public V.ref replace(K key, V value) {
             typeCheck(key, value);
             return m.replace(key, value);
         }
@@ -4414,7 +4414,7 @@ public class Collections {
 
         public <T> T[] toArray(T[] a) {
             if (a.length > 0)
-                a[0] = null;
+                ((Object[]) a)[0] = null;
             return a;
         }
 
@@ -4545,7 +4545,7 @@ public class Collections {
 
         public <T> T[] toArray(T[] a) {
             if (a.length > 0)
-                a[0] = null;
+                ((Object[]) a)[0] = null;
             return a;
         }
 
@@ -4677,7 +4677,7 @@ public class Collections {
         public void clear()                        {}
         public boolean containsKey(Object key)     {return false;}
         public boolean containsValue(Object value) {return false;}
-        public V get(Object key)                   {return null;}
+        public V.ref get(Object key)                   {return null;}
         public Set<K> keySet()                     {return emptySet();}
         public Collection<V> values()              {return emptySet();}
         public Set<Map.Entry<K,V>> entrySet()      {return emptySet();}
@@ -4721,7 +4721,7 @@ public class Collections {
         }
 
         @Override
-        public V replace(K key, V value) {
+        public V.ref replace(K key, V value) {
             throw new UnsupportedOperationException();
         }
 
@@ -4992,7 +4992,7 @@ public class Collections {
         public boolean isEmpty()                                {return false;}
         public boolean containsKey(Object key)             {return eq(key, k);}
         public boolean containsValue(Object value)       {return eq(value, v);}
-        public V get(Object key)              {return (eq(key, k) ? v : null);}
+        public V.ref get(Object key)              {return (eq(key, k) ? v : null);}
 
         private transient Set<K> keySet;
         private transient Set<Map.Entry<K,V>> entrySet;
@@ -5049,7 +5049,7 @@ public class Collections {
         }
 
         @Override
-        public V replace(K key, V value) {
+        public V.ref replace(K key, V value) {
             throw new UnsupportedOperationException();
         }
 
@@ -5169,7 +5169,7 @@ public class Collections {
             } else {
                 Arrays.fill(a, 0, n, element);
                 if (a.length > n)
-                    a[n] = null;
+                    ((Object[]) a)[n] = null;
             }
             return a;
         }

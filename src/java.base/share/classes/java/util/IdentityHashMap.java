@@ -324,7 +324,7 @@ public class IdentityHashMap<K,V>
      * @see #put(Object, Object)
      */
     @SuppressWarnings("unchecked")
-    public V get(Object key) {
+    public V.ref get(Object key) {
         Object k = maskNull(key);
         Object[] tab = table;
         int len = tab.length;
@@ -518,7 +518,7 @@ public class IdentityHashMap<K,V>
      *         (A {@code null} return can also indicate that the map
      *         previously associated {@code null} with {@code key}.)
      */
-    public V remove(Object key) {
+    public V.ref remove(Object key) {
         Object k = maskNull(key);
         Object[] tab = table;
         int len = tab.length;
@@ -1017,12 +1017,12 @@ public class IdentityHashMap<K,V>
         public Object[] toArray() {
             return toArray(new Object[0]);
         }
-        @SuppressWarnings("unchecked")
         public <T> T[] toArray(T[] a) {
+            Object[] r = a;
             int expectedModCount = modCount;
             int size = size();
-            if (a.length < size)
-                a = (T[]) Array.newInstance(a.getClass().getComponentType(), size);
+            if (r.length < size)
+                r = (Object[]) Array.newInstance(a.getClass().getComponentType(), size);
             Object[] tab = table;
             int ti = 0;
             for (int si = 0; si < tab.length; si += 2) {
@@ -1032,7 +1032,7 @@ public class IdentityHashMap<K,V>
                     if (ti >= size) {
                         throw new ConcurrentModificationException();
                     }
-                    a[ti++] = (T) unmaskNull(key); // unmask key
+                    r[ti++] = unmaskNull(key); // unmask key
                 }
             }
             // fewer elements than expected or concurrent modification from other thread detected
@@ -1040,10 +1040,12 @@ public class IdentityHashMap<K,V>
                 throw new ConcurrentModificationException();
             }
             // final null marker as per spec
-            if (ti < a.length) {
-                a[ti] = null;
+            if (ti < r.length) {
+                r[ti] = null;
             }
-            return a;
+            @SuppressWarnings("unchecked")
+            T[] result = (T[]) r;
+            return result;
         }
 
         public Spliterator<K> spliterator() {
@@ -1105,12 +1107,12 @@ public class IdentityHashMap<K,V>
         public Object[] toArray() {
             return toArray(new Object[0]);
         }
-        @SuppressWarnings("unchecked")
         public <T> T[] toArray(T[] a) {
+            Object[] r = a;
             int expectedModCount = modCount;
             int size = size();
-            if (a.length < size)
-                a = (T[]) Array.newInstance(a.getClass().getComponentType(), size);
+            if (r.length < size)
+                r = (Object[]) Array.newInstance(a.getClass().getComponentType(), size);
             Object[] tab = table;
             int ti = 0;
             for (int si = 0; si < tab.length; si += 2) {
@@ -1119,7 +1121,7 @@ public class IdentityHashMap<K,V>
                     if (ti >= size) {
                         throw new ConcurrentModificationException();
                     }
-                    a[ti++] = (T) tab[si+1]; // copy value
+                    r[ti++] = tab[si+1]; // copy value
                 }
             }
             // fewer elements than expected or concurrent modification from other thread detected
@@ -1127,10 +1129,12 @@ public class IdentityHashMap<K,V>
                 throw new ConcurrentModificationException();
             }
             // final null marker as per spec
-            if (ti < a.length) {
-                a[ti] = null;
+            if (ti < r.length) {
+                r[ti] = null;
             }
-            return a;
+            @SuppressWarnings("unchecked")
+            T[] result = (T[]) r;
+            return result;
         }
 
         public Spliterator<V> spliterator() {
@@ -1227,12 +1231,12 @@ public class IdentityHashMap<K,V>
             return toArray(new Object[0]);
         }
 
-        @SuppressWarnings("unchecked")
         public <T> T[] toArray(T[] a) {
+            Object[] r = a;
             int expectedModCount = modCount;
             int size = size();
-            if (a.length < size)
-                a = (T[]) Array.newInstance(a.getClass().getComponentType(), size);
+            if (r.length < size)
+                r = (Object[]) Array.newInstance(a.getClass().getComponentType(), size);
             Object[] tab = table;
             int ti = 0;
             for (int si = 0; si < tab.length; si += 2) {
@@ -1242,7 +1246,7 @@ public class IdentityHashMap<K,V>
                     if (ti >= size) {
                         throw new ConcurrentModificationException();
                     }
-                    a[ti++] = (T) new AbstractMap.SimpleEntry<>(unmaskNull(key), tab[si + 1]);
+                    r[ti++] = new AbstractMap.SimpleEntry<>(unmaskNull(key), tab[si + 1]);
                 }
             }
             // fewer elements than expected or concurrent modification from other thread detected
@@ -1250,10 +1254,12 @@ public class IdentityHashMap<K,V>
                 throw new ConcurrentModificationException();
             }
             // final null marker as per spec
-            if (ti < a.length) {
-                a[ti] = null;
+            if (ti < r.length) {
+                r[ti] = null;
             }
-            return a;
+            @SuppressWarnings("unchecked")
+            T[] result = (T[]) r;
+            return result;
         }
 
         public Spliterator<Map.Entry<K,V>> spliterator() {

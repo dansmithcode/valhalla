@@ -72,7 +72,7 @@ public abstract class RecursiveTask<V> extends ForkJoinTask<V> {
      * The result of the computation.
      */
     @SuppressWarnings("serial") // Conditionally serializable
-    V result;
+    V.ref result;
 
     /**
      * The main computation performed by this task.
@@ -80,7 +80,7 @@ public abstract class RecursiveTask<V> extends ForkJoinTask<V> {
      */
     protected abstract V compute();
 
-    public final V getRawResult() {
+    public final V.ref getRawResult() {
         return result;
     }
 

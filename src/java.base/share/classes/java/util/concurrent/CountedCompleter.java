@@ -756,7 +756,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
      *
      * @return the result of the computation
      */
-    public T getRawResult() { return null; }
+    public T.ref getRawResult() { return null; }
 
     /**
      * A method that result-bearing CountedCompleters may optionally

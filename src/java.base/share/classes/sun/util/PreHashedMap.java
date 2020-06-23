@@ -130,7 +130,7 @@ public abstract class PreHashedMap<V>
         return (V)x;
     }
 
-    public V get(Object k) {
+    public V.ref get(Object k) {
         int h = (k.hashCode() >> shift) & mask;
         Object[] a = (Object[])ht[h];
         if (a == null) return null;

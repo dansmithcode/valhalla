@@ -4155,7 +4155,7 @@ public class Arrays {
                                      (Class<? extends T[]>) a.getClass());
             System.arraycopy(this.a, 0, a, 0, size);
             if (a.length > size)
-                a[size] = null;
+                ((Object[]) a)[size] = null;
             return a;
         }
 

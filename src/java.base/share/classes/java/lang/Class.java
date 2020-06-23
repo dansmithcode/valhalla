@@ -699,7 +699,7 @@ public final class Class<T> implements java.io.Serializable,
         } catch (InvocationTargetException e) {
             Unsafe.getUnsafe().throwException(e.getTargetException());
             // Not reached
-            return null;
+            throw new AssertionError();
         }
     }
 

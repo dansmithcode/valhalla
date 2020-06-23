@@ -998,7 +998,7 @@ public class Hashtable<K,V>
     }
 
     @Override
-    public synchronized V replace(K key, V value) {
+    public synchronized V.ref replace(K key, V value) {
         Objects.requireNonNull(value);
         Entry<?,?> tab[] = table;
         int hash = key.hashCode();

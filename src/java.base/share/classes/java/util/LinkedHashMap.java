@@ -436,7 +436,7 @@ public class LinkedHashMap<K,V>
      * The {@link #containsKey containsKey} operation may be used to
      * distinguish these two cases.
      */
-    public V get(Object key) {
+    public V.ref get(Object key) {
         Node<K,V> e;
         if ((e = getNode(key)) == null)
             return null;

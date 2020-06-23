@@ -667,7 +667,7 @@ public final class Spliterators {
         Objects.requireNonNull(spliterator);
         class Adapter implements Iterator<T>, Consumer<T> {
             boolean valueReady = false;
-            T nextElement;
+            T.ref nextElement;
 
             @Override
             public void accept(T t) {
@@ -688,7 +688,7 @@ public final class Spliterators {
                     throw new NoSuchElementException();
                 else {
                     valueReady = false;
-                    return nextElement;
+                    return (T) nextElement;
                 }
             }
         }
@@ -837,7 +837,7 @@ public final class Spliterators {
 
         EmptySpliterator() { }
 
-        public S trySplit() {
+        public S.ref trySplit() {
             return null;
         }
 

@@ -1106,8 +1106,8 @@ public class LinkedList<E>
         for (Node<E> x = first; x != null; x = x.next)
             result[i++] = x.item;
 
-        if (a.length > size)
-            a[size] = null;
+        if (result.length > size)
+            result[size] = null;
 
         return a;
     }

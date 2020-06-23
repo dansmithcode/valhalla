@@ -718,7 +718,7 @@ public class Vector<E>
         System.arraycopy(elementData, 0, a, 0, elementCount);
 
         if (a.length > elementCount)
-            a[elementCount] = null;
+            ((Object[]) a)[elementCount] = null;
 
         return a;
     }

@@ -118,7 +118,7 @@ abstract class AbstractTask<P_IN, P_OUT, R,
     protected K rightChild;
 
     /** The result of this node, if completed */
-    private R localResult;
+    private R.ref localResult;
 
     /**
      * Constructor for root nodes.
@@ -216,7 +216,7 @@ abstract class AbstractTask<P_IN, P_OUT, R,
      * {@link #setLocalResult}
      */
     @Override
-    public R getRawResult() {
+    public R.ref getRawResult() {
         return localResult;
     }
 

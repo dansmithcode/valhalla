@@ -418,18 +418,19 @@ class ImmutableCollections {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public <T> T[] toArray(T[] a) {
-            T[] array = a.length >= size ? a :
-                    (T[])java.lang.reflect.Array
-                            .newInstance(a.getClass().getComponentType(), size);
+            Object[] array = a.length >= size ? a :
+                    (Object[]) java.lang.reflect.Array
+                               .newInstance(a.getClass().getComponentType(), size);
             for (int i = 0; i < size; i++) {
-                array[i] = (T)get(i);
+                array[i] = get(i);
             }
             if (array.length > size) {
                 array[size] = null; // null-terminate
             }
-            return array;
+            @SuppressWarnings("unchecked")
+            T[] result = (T[]) array;
+            return result;
         }
     }
 
@@ -499,19 +500,20 @@ class ImmutableCollections {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public <T> T[] toArray(T[] a) {
             int size = size();
-            T[] array = a.length >= size ? a :
-                    (T[])Array.newInstance(a.getClass().getComponentType(), size);
-            array[0] = (T)e0;
+            Object[] array = a.length >= size ? a :
+                    (Object[]) Array.newInstance(a.getClass().getComponentType(), size);
+            array[0] = e0;
             if (size == 2) {
-                array[1] = (T)e1;
+                array[1] = e1;
             }
             if (array.length > size) {
                 array[size] = null; // null-terminate
             }
-            return array;
+            @SuppressWarnings("unchecked")
+            T[] result = (T[]) array;
+            return result;
         }
     }
 
@@ -563,16 +565,17 @@ class ImmutableCollections {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public <T> T[] toArray(T[] a) {
             int size = elements.length;
             if (a.length < size) {
                 // Make a new array of a's runtime type, but my contents:
-                return (T[]) Arrays.copyOf(elements, size, a.getClass());
+                @SuppressWarnings("unchecked")
+                T[] result = Arrays.copyOf(elements, size, (Class<? extends T[]>) a.getClass());
+                return result;
             }
             System.arraycopy(elements, 0, a, 0, size);
             if (a.length > size) {
-                a[size] = null; // null-terminate
+                ((Object[]) a)[size] = null; // null-terminate
             }
             return a;
         }
@@ -704,24 +707,25 @@ class ImmutableCollections {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public <T> T[] toArray(T[] a) {
             int size = size();
-            T[] array = a.length >= size ? a :
-                    (T[])Array.newInstance(a.getClass().getComponentType(), size);
+            Object[] array = a.length >= size ? a :
+                    (Object[]) Array.newInstance(a.getClass().getComponentType(), size);
             if (size == 1) {
-                array[0] = (T)e0;
+                array[0] = e0;
             } else if (REVERSE) {
-                array[0] = (T)e1;
-                array[1] = (T)e0;
+                array[0] = e1;
+                array[1] = e0;
             } else {
-                array[0] = (T)e0;
-                array[1] = (T)e1;
+                array[0] = e0;
+                array[1] = e1;
             }
             if (array.length > size) {
                 array[size] = null; // null-terminate
             }
-            return array;
+            @SuppressWarnings("unchecked")
+            T[] result = (T[]) array;
+            return result;
         }
     }
 
@@ -881,18 +885,19 @@ class ImmutableCollections {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public <T> T[] toArray(T[] a) {
-            T[] array = a.length >= size ? a :
-                    (T[])Array.newInstance(a.getClass().getComponentType(), size);
+            Object[] array = a.length >= size ? a :
+                    (Object[]) Array.newInstance(a.getClass().getComponentType(), size);
             Iterator<E> it = iterator();
             for (int i = 0; i < size; i++) {
-                array[i] = (T)it.next();
+                array[i] = it.next();
             }
             if (array.length > size) {
                 array[size] = null; // null-terminate
             }
-            return array;
+            @SuppressWarnings("unchecked")
+            T[] result = (T[]) array;
+            return result;
         }
     }
 
@@ -907,9 +912,9 @@ class ImmutableCollections {
         @Override public V put(K key, V value) { throw uoe(); }
         @Override public void putAll(Map<? extends K,? extends V> m) { throw uoe(); }
         @Override public V putIfAbsent(K key, V value) { throw uoe(); }
-        @Override public V remove(Object key) { throw uoe(); }
+        @Override public V.ref remove(Object key) { throw uoe(); }
         @Override public boolean remove(Object key, Object value) { throw uoe(); }
-        @Override public V replace(K key, V value) { throw uoe(); }
+        @Override public V.ref replace(K key, V value) { throw uoe(); }
         @Override public boolean replace(K key, V oldValue, V newValue) { throw uoe(); }
         @Override public void replaceAll(BiFunction<? super K,? super V,? extends V> f) { throw uoe(); }
 
@@ -945,7 +950,7 @@ class ImmutableCollections {
         }
 
         @Override
-        public V get(Object o) {
+        public V.ref get(Object o) {
             return o.equals(k0) ? v0 : null; // implicit nullcheck of o
         }
 
@@ -1060,7 +1065,7 @@ class ImmutableCollections {
 
         @Override
         @SuppressWarnings("unchecked")
-        public V get(Object o) {
+        public V.ref get(Object o) {
             if (size == 0) {
                 Objects.requireNonNull(o);
                 return null;

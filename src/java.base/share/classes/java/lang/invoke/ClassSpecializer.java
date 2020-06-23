@@ -68,7 +68,7 @@ abstract class ClassSpecializer<T,K,S extends ClassSpecializer<T,K,S>.SpeciesDat
     private final String sdFieldName;
     private final List<MemberName> transformMethods;
     private final MethodType baseConstructorType;
-    private final S topSpecies;
+    private final S.ref topSpecies;
     private final ConcurrentHashMap<K, Object> cache = new ConcurrentHashMap<>();
     private final Factory factory;
     private @Stable boolean topClassIsSuper;
@@ -89,7 +89,7 @@ abstract class ClassSpecializer<T,K,S extends ClassSpecializer<T,K,S>.SpeciesDat
     protected MethodType baseConstructorType() { return baseConstructorType; }
 
     /** Return the trivial species for the null sequence of arguments. */
-    protected final S topSpecies() { return topSpecies; }
+    protected final S.ref topSpecies() { return topSpecies; }
 
     /** Return the list of transform methods originally given at creation of this specializer. */
     protected final List<MemberName> transformMethods() { return transformMethods; }
@@ -122,11 +122,11 @@ abstract class ClassSpecializer<T,K,S extends ClassSpecializer<T,K,S>.SpeciesDat
         this.sdFieldName = sdFieldName;
         this.baseConstructorType = baseConstructorType.changeReturnType(void.class);
         this.factory = makeFactory();
-        K tsk = topSpeciesKey();
-        S topSpecies = null;
+        K.ref tsk = topSpeciesKey();
+        S.ref topSpecies = null;
         if (tsk != null && topSpecies == null) {
             // if there is a key, build the top species if needed:
-            topSpecies = findSpecies(tsk);
+            topSpecies = findSpecies((K) tsk);
         }
         this.topSpecies = topSpecies;
     }
@@ -449,7 +449,7 @@ abstract class ClassSpecializer<T,K,S extends ClassSpecializer<T,K,S>.SpeciesDat
 
     protected abstract S newSpeciesData(K key);
 
-    protected K topSpeciesKey() {
+    protected K.ref topSpeciesKey() {
         return null;  // null means don't report a top species
     }
 
@@ -960,7 +960,7 @@ abstract class ClassSpecializer<T,K,S extends ClassSpecializer<T,K,S>.SpeciesDat
             }
         }
 
-        protected S loadSpeciesDataFromCode(Class<? extends T> speciesCode) {
+        protected S.ref loadSpeciesDataFromCode(Class<? extends T> speciesCode) {
             if (speciesCode == topClass()) {
                 return topSpecies;
             }

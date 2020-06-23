@@ -72,7 +72,7 @@ class StringCoding {
     private static final Charset US_ASCII = sun.nio.cs.US_ASCII.INSTANCE;
     private static final Charset UTF_8 = sun.nio.cs.UTF_8.INSTANCE;
 
-    private static <T> T deref(ThreadLocal<SoftReference<T>> tl) {
+    private static <T> T.ref deref(ThreadLocal<SoftReference<T>> tl) {
         SoftReference<T> sr = tl.get();
         if (sr == null)
             return null;

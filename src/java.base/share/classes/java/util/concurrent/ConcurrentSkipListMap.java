@@ -755,7 +755,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      * associated with key
      * @return the node, or null if not found
      */
-    final V doRemove(Object key, Object value) {
+    final V.ref doRemove(Object key, Object value) {
         if (key == null)
             throw new NullPointerException();
         Comparator<? super K> cmp = comparator;
@@ -1308,7 +1308,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      *         with the keys currently in the map
      * @throws NullPointerException if the specified key is null
      */
-    public V get(Object key) {
+    public V.ref get(Object key) {
         return doGet(key);
     }
 
@@ -1357,7 +1357,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      *         with the keys currently in the map
      * @throws NullPointerException if the specified key is null
      */
-    public V remove(Object key) {
+    public V.ref remove(Object key) {
         return doRemove(key, null);
     }
 
@@ -1832,7 +1832,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      *         with the keys currently in the map
      * @throws NullPointerException if the specified key or value is null
      */
-    public V replace(K key, V value) {
+    public V.ref replace(K key, V value) {
         if (key == null || value == null)
             throw new NullPointerException();
         for (;;) {
@@ -2620,7 +2620,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             return inBounds(key, m.comparator) && m.containsKey(key);
         }
 
-        public V get(Object key) {
+        public V.ref get(Object key) {
             if (key == null) throw new NullPointerException();
             return (!inBounds(key, m.comparator)) ? null : m.get(key);
         }
@@ -2630,7 +2630,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             return m.put(key, value);
         }
 
-        public V remove(Object key) {
+        public V.ref remove(Object key) {
             return (!inBounds(key, m.comparator)) ? null : m.remove(key);
         }
 
@@ -2691,7 +2691,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             return m.replace(key, oldValue, newValue);
         }
 
-        public V replace(K key, V value) {
+        public V.ref replace(K key, V value) {
             checkKeyBounds(key, m.comparator);
             return m.replace(key, value);
         }

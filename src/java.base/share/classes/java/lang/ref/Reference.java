@@ -148,7 +148,7 @@ public abstract class Reference<T> {
      * bypassing the pending-Reference list.
      */
 
-    private T referent;         /* Treated specially by GC */
+    private T.ref referent;         /* Treated specially by GC */
 
     /* The queue this reference gets enqueued to by GC notification or by
      * calling enqueue().
@@ -329,7 +329,7 @@ public abstract class Reference<T> {
      *           {@code null} if this reference object has been cleared
      */
     @HotSpotIntrinsicCandidate
-    public T get() {
+    public T.ref get() {
         return this.referent;
     }
 

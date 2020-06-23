@@ -635,21 +635,23 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
      *         this queue
      * @throws NullPointerException if the specified array is null
      */
-    @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
         fullyLock();
         try {
+            Object[] r = a;
             int size = count.get();
-            if (a.length < size)
-                a = (T[])java.lang.reflect.Array.newInstance
+            if (r.length < size)
+                r = (Object[]) java.lang.reflect.Array.newInstance
                     (a.getClass().getComponentType(), size);
 
             int k = 0;
             for (Node<E> p = head.next; p != null; p = p.next)
-                a[k++] = (T)p.item;
-            if (a.length > k)
-                a[k] = null;
-            return a;
+                r[k++] = p.item;
+            if (r.length > k)
+                r[k] = null;
+            @SuppressWarnings("unchecked")
+            T[] result = (T[]) r;
+            return result;
         } finally {
             fullyUnlock();
         }

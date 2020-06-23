@@ -1093,7 +1093,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
      */
     public <T> T[] toArray(T[] a) {
         if (a.length > 0)
-            a[0] = null;
+            ((Object[]) a)[0] = null;
         return a;
     }
 

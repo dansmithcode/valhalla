@@ -172,7 +172,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      */
-    public V get(Object key) {
+    public V.ref get(Object key) {
         Iterator<Entry<K,V>> i = entrySet().iterator();
         if (key==null) {
             while (i.hasNext()) {
@@ -231,7 +231,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      */
-    public V remove(Object key) {
+    public V.ref remove(Object key) {
         Iterator<Entry<K,V>> i = entrySet().iterator();
         Entry<K,V> correctEntry = null;
         if (key==null) {
@@ -248,7 +248,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
             }
         }
 
-        V oldValue = null;
+        V.ref oldValue = null;
         if (correctEntry !=null) {
             oldValue = correctEntry.getValue();
             i.remove();

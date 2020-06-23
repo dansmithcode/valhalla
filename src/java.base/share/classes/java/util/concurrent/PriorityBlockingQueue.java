@@ -834,7 +834,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
                 return (T[]) Arrays.copyOf(queue, size, a.getClass());
             System.arraycopy(queue, 0, a, 0, n);
             if (a.length > n)
-                a[n] = null;
+                ((Object[]) a)[n] = null;
             return a;
         } finally {
             lock.unlock();

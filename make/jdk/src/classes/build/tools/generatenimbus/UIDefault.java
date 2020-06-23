@@ -27,13 +27,13 @@ package build.tools.generatenimbus;
 
 public class UIDefault<T> {
     String name;
-    private T value;
+    private T.ref value;
 
     public String getName() {
         return name;
     }
 
-    public T getValue() {
+    public T.ref getValue() {
         return value;
     }
 

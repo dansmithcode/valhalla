@@ -638,7 +638,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             } else {
                 System.arraycopy(items, takeIndex, a, 0, firstLeg);
                 if (a.length > count)
-                    a[count] = null;
+                    ((Object[]) a)[count] = null;
             }
             if (firstLeg < count)
                 System.arraycopy(items, 0, a, firstLeg, putIndex);

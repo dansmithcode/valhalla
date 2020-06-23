@@ -1216,7 +1216,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      *
      * @return the result, or {@code null} if not completed
      */
-    public abstract V getRawResult();
+    public abstract V.ref getRawResult();
 
     /**
      * Forces the given value to be returned as a result.  This method
@@ -1383,7 +1383,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             this.runnable = runnable;
             this.result = result; // OK to set this even before completion
         }
-        public final T getRawResult() { return result; }
+        public final T.ref getRawResult() { return result; }
         public final void setRawResult(T v) { result = v; }
         public final boolean exec() { runnable.run(); return true; }
         public final void run() { invoke(); }
@@ -1446,7 +1446,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             if (callable == null) throw new NullPointerException();
             this.callable = callable;
         }
-        public final T getRawResult() { return result; }
+        public final T.ref getRawResult() { return result; }
         public final void setRawResult(T v) { result = v; }
         public final boolean exec() {
             try {

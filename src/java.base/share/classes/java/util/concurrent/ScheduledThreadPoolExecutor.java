@@ -1300,7 +1300,7 @@ public class ScheduledThreadPoolExecutor
                     return (T[]) Arrays.copyOf(queue, size, a.getClass());
                 System.arraycopy(queue, 0, a, 0, size);
                 if (a.length > size)
-                    a[size] = null;
+                    ((Object[]) a)[size] = null;
                 return a;
             } finally {
                 lock.unlock();

@@ -249,7 +249,7 @@ public interface ConcurrentMap<K,V> extends Map<K,V> {
      * @throws IllegalArgumentException if some property of the specified key
      *         or value prevents it from being stored in this map
      */
-    V replace(K key, V value);
+    V.ref replace(K key, V value);
 
     /**
      * {@inheritDoc}

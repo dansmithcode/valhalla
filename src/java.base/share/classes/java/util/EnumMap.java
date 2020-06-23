@@ -239,7 +239,7 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
      * The {@link #containsKey containsKey} operation may be used to
      * distinguish these two cases.
      */
-    public V get(Object key) {
+    public V.ref get(Object key) {
         return (isValidKey(key) ?
                 unmaskNull(vals[((Enum<?>)key).ordinal()]) : null);
     }
@@ -280,7 +280,7 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
      *     return can also indicate that the map previously associated
      *     {@code null} with the specified key.)
      */
-    public V remove(Object key) {
+    public V.ref remove(Object key) {
         if (!isValidKey(key))
             return null;
         int index = ((Enum<?>)key).ordinal();
@@ -493,15 +493,18 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
         public Object[] toArray() {
             return fillEntryArray(new Object[size]);
         }
-        @SuppressWarnings("unchecked")
         public <T> T[] toArray(T[] a) {
+            Object[] r = a;
             int size = size();
-            if (a.length < size)
-                a = (T[])java.lang.reflect.Array
+            if (r.length < size)
+                r = (Object[]) java.lang.reflect.Array
                     .newInstance(a.getClass().getComponentType(), size);
-            if (a.length > size)
-                a[size] = null;
-            return (T[]) fillEntryArray(a);
+            if (r.length > size)
+                r[size] = null;
+            fillEntryArray(r);
+            @SuppressWarnings("unchecked")
+            T[] result = (T[]) r;
+            return result;
         }
         private Object[] fillEntryArray(Object[] a) {
             int j = 0;

@@ -399,7 +399,7 @@ public class ArrayList<E> extends AbstractList<E>
             return (T[]) Arrays.copyOf(elementData, size, a.getClass());
         System.arraycopy(elementData, 0, a, 0, size);
         if (a.length > size)
-            a[size] = null;
+            ((Object[]) a)[size] = null;
         return a;
     }
 
@@ -1235,7 +1235,7 @@ public class ArrayList<E> extends AbstractList<E>
                         root.elementData, offset, offset + size, a.getClass());
             System.arraycopy(root.elementData, offset, a, 0, size);
             if (a.length > size)
-                a[size] = null;
+                ((Object[]) a)[size] = null;
             return a;
         }
 

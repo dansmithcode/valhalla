@@ -242,7 +242,7 @@ abstract class AbstractConstantGroup implements ConstantGroup {
             else
                 self.copyConstants(offset, offset + size, a, 0,
                                    ifNotPresent);
-            if (pad > 0)  a[size] = null;
+            if (pad > 0)  ((Object[]) a)[size] = null;
             return a;
         }
     }

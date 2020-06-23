@@ -1363,13 +1363,13 @@ s.writeObject(this.parameterArray());
          * @param elem element to look up
          * @return the interned element
          */
-        public T get(T elem) {
+        public T.ref get(T elem) {
             if (elem == null) throw new NullPointerException();
             expungeStaleElements();
 
             WeakEntry<T> value = map.get(elem);
             if (value != null) {
-                T res = value.get();
+                T.ref res = value.get();
                 if (res != null) {
                     return res;
                 }
@@ -1393,14 +1393,14 @@ s.writeObject(this.parameterArray());
             // First race is with two concurrent updaters.
             // Second race is with GC purging weak ref under our feet.
             // Hopefully, we almost always end up with a single pass.
-            T interned;
+            T.ref interned;
             WeakEntry<T> e = new WeakEntry<>(elem, stale);
             do {
                 expungeStaleElements();
                 WeakEntry<T> exist = map.putIfAbsent(e, e);
                 interned = (exist == null) ? elem : exist.get();
             } while (interned == null);
-            return interned;
+            return (T) interned;
         }
 
         private void expungeStaleElements() {
