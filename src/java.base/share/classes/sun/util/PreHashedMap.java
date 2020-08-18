@@ -147,7 +147,7 @@ public abstract class PreHashedMap<V>
      * @throws UnsupportedOperationException
      *         If the given key is not part of this map's initial key set
      */
-    public V put(String k, V v) {
+    public V.ref put(String k, V v) {
         int h = (k.hashCode() >> shift) & mask;
         Object[] a = (Object[])ht[h];
         if (a == null)

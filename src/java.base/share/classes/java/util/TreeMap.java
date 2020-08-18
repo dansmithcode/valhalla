@@ -530,12 +530,12 @@ public class TreeMap<K,V>
      *         and this map uses natural ordering, or its comparator
      *         does not permit null keys
      */
-    public V put(K key, V value) {
+    public V.ref put(K key, V value) {
         return put(key, value, true);
     }
 
     @Override
-    public V putIfAbsent(K key, V value) {
+    public V.ref putIfAbsent(K key, V value) {
         return put(key, value, false);
     }
 
@@ -612,7 +612,7 @@ public class TreeMap<K,V>
      * remapping function modified this map
      */
     @Override
-    public V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+    public V.ref computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         Objects.requireNonNull(remappingFunction);
         Entry<K,V> oldEntry = getEntry(key);
         if (oldEntry != null && oldEntry.value != null) {
@@ -1784,7 +1784,7 @@ public class TreeMap<K,V>
             return inRange(key) && m.containsKey(key);
         }
 
-        public final V put(K key, V value) {
+        public final V.ref put(K key, V value) {
             if (!inRange(key))
                 throw new IllegalArgumentException("key out of range");
             return m.put(key, value);

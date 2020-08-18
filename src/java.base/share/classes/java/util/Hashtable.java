@@ -376,7 +376,7 @@ public class Hashtable<K,V>
      * @see     #put(Object, Object)
      */
     @SuppressWarnings("unchecked")
-    public synchronized V get(Object key) {
+    public synchronized V.ref get(Object key) {
         Entry<?,?> tab[] = table;
         int hash = key.hashCode();
         int index = (hash & 0x7FFFFFFF) % tab.length;
@@ -470,7 +470,7 @@ public class Hashtable<K,V>
      * @see     Object#equals(Object)
      * @see     #get(Object)
      */
-    public synchronized V put(K key, V value) {
+    public synchronized V.ref put(K key, V value) {
         // Make sure the value is not null
         if (value == null) {
             throw new NullPointerException();
@@ -503,7 +503,7 @@ public class Hashtable<K,V>
      *          or {@code null} if the key did not have a mapping
      * @throws  NullPointerException  if the key is {@code null}
      */
-    public synchronized V remove(Object key) {
+    public synchronized V.ref remove(Object key) {
         Entry<?,?> tab[] = table;
         int hash = key.hashCode();
         int index = (hash & 0x7FFFFFFF) % tab.length;
@@ -927,7 +927,7 @@ public class Hashtable<K,V>
     }
 
     @Override
-    public synchronized V putIfAbsent(K key, V value) {
+    public synchronized V.ref putIfAbsent(K key, V value) {
         Objects.requireNonNull(value);
 
         // Makes sure the key is not already in the hashtable.
@@ -1062,7 +1062,7 @@ public class Hashtable<K,V>
      * remapping function modified this map
      */
     @Override
-    public synchronized V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+    public synchronized V.ref computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         Objects.requireNonNull(remappingFunction);
 
         Entry<?,?> tab[] = table;

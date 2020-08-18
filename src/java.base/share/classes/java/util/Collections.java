@@ -1467,12 +1467,12 @@ public class Collections {
         public boolean isEmpty()                 {return m.isEmpty();}
         public boolean containsKey(Object key)   {return m.containsKey(key);}
         public boolean containsValue(Object val) {return m.containsValue(val);}
-        public V get(Object key)                 {return m.get(key);}
+        public V.ref get(Object key)                 {return m.get(key);}
 
-        public V put(K key, V value) {
+        public V.ref put(K key, V value) {
             throw new UnsupportedOperationException();
         }
-        public V remove(Object key) {
+        public V.ref remove(Object key) {
             throw new UnsupportedOperationException();
         }
         public void putAll(Map<? extends K, ? extends V> m) {
@@ -1527,7 +1527,7 @@ public class Collections {
         }
 
         @Override
-        public V putIfAbsent(K key, V value) {
+        public V.ref putIfAbsent(K key, V value) {
             throw new UnsupportedOperationException();
         }
 
@@ -1552,7 +1552,7 @@ public class Collections {
         }
 
         @Override
-        public V computeIfPresent(K key,
+        public V.ref computeIfPresent(K key,
                 BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
             throw new UnsupportedOperationException();
         }
@@ -2630,14 +2630,14 @@ public class Collections {
         public boolean containsValue(Object value) {
             synchronized (mutex) {return m.containsValue(value);}
         }
-        public V get(Object key) {
+        public V.ref get(Object key) {
             synchronized (mutex) {return m.get(key);}
         }
 
-        public V put(K key, V value) {
+        public V.ref put(K key, V value) {
             synchronized (mutex) {return m.put(key, value);}
         }
-        public V remove(Object key) {
+        public V.ref remove(Object key) {
             synchronized (mutex) {return m.remove(key);}
         }
         public void putAll(Map<? extends K, ? extends V> map) {
@@ -2701,7 +2701,7 @@ public class Collections {
             synchronized (mutex) {m.replaceAll(function);}
         }
         @Override
-        public V putIfAbsent(K key, V value) {
+        public V.ref putIfAbsent(K key, V value) {
             synchronized (mutex) {return m.putIfAbsent(key, value);}
         }
         @Override
@@ -2722,7 +2722,7 @@ public class Collections {
             synchronized (mutex) {return m.computeIfAbsent(key, mappingFunction);}
         }
         @Override
-        public V computeIfPresent(K key,
+        public V.ref computeIfPresent(K key,
                 BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
             synchronized (mutex) {return m.computeIfPresent(key, remappingFunction);}
         }
@@ -3687,8 +3687,8 @@ public class Collections {
         public boolean isEmpty()               { return m.isEmpty(); }
         public boolean containsKey(Object key) { return m.containsKey(key); }
         public boolean containsValue(Object v) { return m.containsValue(v); }
-        public V get(Object key)               { return m.get(key); }
-        public V remove(Object key)            { return m.remove(key); }
+        public V.ref get(Object key)               { return m.get(key); }
+        public V.ref remove(Object key)            { return m.remove(key); }
         public void clear()                    { m.clear(); }
         public Set<K> keySet()                 { return m.keySet(); }
         public Collection<V> values()          { return m.values(); }
@@ -3696,7 +3696,7 @@ public class Collections {
         public int hashCode()                  { return m.hashCode(); }
         public String toString()               { return m.toString(); }
 
-        public V put(K key, V value) {
+        public V.ref put(K key, V value) {
             typeCheck(key, value);
             return m.put(key, value);
         }
@@ -3742,7 +3742,7 @@ public class Collections {
         }
 
         @Override
-        public V putIfAbsent(K key, V value) {
+        public V.ref putIfAbsent(K key, V value) {
             typeCheck(key, value);
             return m.putIfAbsent(key, value);
         }
@@ -3776,7 +3776,7 @@ public class Collections {
         }
 
         @Override
-        public V computeIfPresent(K key,
+        public V.ref computeIfPresent(K key,
                 BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
             return m.computeIfPresent(key, typeCheck(remappingFunction));
         }
@@ -4706,7 +4706,7 @@ public class Collections {
         }
 
         @Override
-        public V putIfAbsent(K key, V value) {
+        public V.ref putIfAbsent(K key, V value) {
             throw new UnsupportedOperationException();
         }
 
@@ -4732,7 +4732,7 @@ public class Collections {
         }
 
         @Override
-        public V computeIfPresent(K key,
+        public V.ref computeIfPresent(K key,
                 BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
             throw new UnsupportedOperationException();
         }
@@ -5034,7 +5034,7 @@ public class Collections {
         }
 
         @Override
-        public V putIfAbsent(K key, V value) {
+        public V.ref putIfAbsent(K key, V value) {
             throw new UnsupportedOperationException();
         }
 
@@ -5060,7 +5060,7 @@ public class Collections {
         }
 
         @Override
-        public V computeIfPresent(K key,
+        public V.ref computeIfPresent(K key,
                 BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
             throw new UnsupportedOperationException();
         }

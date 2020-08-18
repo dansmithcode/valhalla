@@ -260,7 +260,7 @@ public class EnumMap<K extends Enum<K>, V> extends AbstractMap<K, V>
      *     {@code null} with the specified key.)
      * @throws NullPointerException if the specified key is null
      */
-    public V put(K key, V value) {
+    public V.ref put(K key, V value) {
         typeCheck(key);
 
         int index = key.ordinal();

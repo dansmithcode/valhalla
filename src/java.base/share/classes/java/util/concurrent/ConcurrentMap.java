@@ -84,8 +84,8 @@ public interface ConcurrentMap<K,V> extends Map<K,V> {
      */
     @Override
     default V getOrDefault(Object key, V defaultValue) {
-        V v;
-        return ((v = get(key)) != null) ? v : defaultValue;
+        V.ref v;
+        return ((v = get(key)) != null) ? (V) v : defaultValue;
     }
 
     /**
@@ -154,7 +154,7 @@ public interface ConcurrentMap<K,V> extends Map<K,V> {
      * @throws IllegalArgumentException if some property of the specified key
      *         or value prevents it from being stored in this map
      */
-    V putIfAbsent(K key, V value);
+    V.ref putIfAbsent(K key, V value);
 
     /**
      * Removes the entry for a key only if currently mapped to a given value.
@@ -287,7 +287,8 @@ public interface ConcurrentMap<K,V> extends Map<K,V> {
         forEach((k,v) -> {
             while (!replace(k, v, function.apply(k, v))) {
                 // v changed or k is gone
-                if ( (v = get(k)) == null) {
+                V.ref newV = get(k);
+                if (newV == null) {
                     // k is no longer in the map.
                     break;
                 }
@@ -325,12 +326,18 @@ public interface ConcurrentMap<K,V> extends Map<K,V> {
     default V computeIfAbsent(K key,
             Function<? super K, ? extends V> mappingFunction) {
         Objects.requireNonNull(mappingFunction);
-        V oldValue, newValue;
-        return ((oldValue = get(key)) == null
-                && (newValue = mappingFunction.apply(key)) != null
-                && (oldValue = putIfAbsent(key, newValue)) == null)
-            ? newValue
-            : oldValue;
+        V.ref oldValue = get(key);
+        if (oldValue == null) {
+            V newValue = mappingFunction.apply(key);
+            if (newValue == null) {
+                return newValue;
+            } else {
+                oldValue = putIfAbsent(key, newValue);
+                return oldValue == null ? newValue : (V) oldValue;
+            }
+        } else {
+            return (V) oldValue;
+        }
     }
 
     /**
@@ -364,14 +371,14 @@ public interface ConcurrentMap<K,V> extends Map<K,V> {
      * @since 1.8
      */
     @Override
-    default V computeIfPresent(K key,
+    default V.ref computeIfPresent(K key,
             BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         Objects.requireNonNull(remappingFunction);
-        for (V oldValue; (oldValue = get(key)) != null; ) {
-            V newValue = remappingFunction.apply(key, oldValue);
+        for (V.ref oldValue; (oldValue = get(key)) != null; ) {
+            V newValue = remappingFunction.apply(key, (V) oldValue);
             if ((newValue == null)
-                ? remove(key, oldValue)
-                : replace(key, oldValue, newValue))
+                ? remove(key, (V) oldValue)
+                : replace(key, (V) oldValue, newValue))
                 return newValue;
         }
         return null;
@@ -413,7 +420,7 @@ public interface ConcurrentMap<K,V> extends Map<K,V> {
      */
     @Override
     default V compute(K key,
-                      BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+                      BiFunction<? super K, ? super V.ref, ? extends V> remappingFunction) {
         retry: for (;;) {
             V oldValue = get(key);
             // if putIfAbsent fails, opportunistically use its return value

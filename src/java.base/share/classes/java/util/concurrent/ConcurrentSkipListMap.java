@@ -1341,7 +1341,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      *         with the keys currently in the map
      * @throws NullPointerException if the specified key or value is null
      */
-    public V put(K key, V value) {
+    public V.ref put(K key, V value) {
         if (value == null)
             throw new NullPointerException();
         return doPut(key, value, false);
@@ -1477,7 +1477,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      *         or the remappingFunction is null
      * @since 1.8
      */
-    public V computeIfPresent(K key,
+    public V.ref computeIfPresent(K key,
                               BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         if (key == null || remappingFunction == null)
             throw new NullPointerException();
@@ -1781,7 +1781,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      *         with the keys currently in the map
      * @throws NullPointerException if the specified key or value is null
      */
-    public V putIfAbsent(K key, V value) {
+    public V.ref putIfAbsent(K key, V value) {
         if (value == null)
             throw new NullPointerException();
         return doPut(key, value, true);
@@ -2625,7 +2625,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             return (!inBounds(key, m.comparator)) ? null : m.get(key);
         }
 
-        public V put(K key, V value) {
+        public V.ref put(K key, V value) {
             checkKeyBounds(key, m.comparator);
             return m.put(key, value);
         }
@@ -2677,7 +2677,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
 
         /* ----------------  ConcurrentMap API methods -------------- */
 
-        public V putIfAbsent(K key, V value) {
+        public V.ref putIfAbsent(K key, V value) {
             checkKeyBounds(key, m.comparator);
             return m.putIfAbsent(key, value);
         }

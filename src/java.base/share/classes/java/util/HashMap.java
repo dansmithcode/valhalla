@@ -608,7 +608,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      *         (A {@code null} return can also indicate that the map
      *         previously associated {@code null} with {@code key}.)
      */
-    public V put(K key, V value) {
+    public V.ref put(K key, V value) {
         return putVal(hash(key), key, value, false, true);
     }
 
@@ -1145,7 +1145,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     @Override
-    public V putIfAbsent(K key, V value) {
+    public V.ref putIfAbsent(K key, V value) {
         return putVal(hash(key), key, value, true, true);
     }
 
@@ -1255,7 +1255,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * remapping function modified this map
      */
     @Override
-    public V computeIfPresent(K key,
+    public V.ref computeIfPresent(K key,
                               BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         if (remappingFunction == null)
             throw new NullPointerException();

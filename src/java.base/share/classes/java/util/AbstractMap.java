@@ -205,7 +205,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * @throws NullPointerException          {@inheritDoc}
      * @throws IllegalArgumentException      {@inheritDoc}
      */
-    public V put(K key, V value) {
+    public V.ref put(K key, V value) {
         throw new UnsupportedOperationException();
     }
 

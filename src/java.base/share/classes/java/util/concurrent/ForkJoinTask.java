@@ -720,7 +720,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         int s;
         if (((s = doJoin()) & ABNORMAL) != 0)
             reportException(s);
-        return getRawResult();
+        return (V) getRawResult();
     }
 
     /**
@@ -735,7 +735,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         int s;
         if (((s = doInvoke()) & ABNORMAL) != 0)
             reportException(s);
-        return getRawResult();
+        return (V) getRawResult();
     }
 
     /**
@@ -1007,7 +1007,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         else if ((s & ABNORMAL) != 0)
             throw new CancellationException();
         else
-            return getRawResult();
+            return (V) getRawResult();
     }
 
     /**
@@ -1065,7 +1065,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         else if ((s & ABNORMAL) != 0)
             throw new CancellationException();
         else
-            return getRawResult();
+            return (V) getRawResult();
     }
 
     /**
@@ -1441,7 +1441,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         @SuppressWarnings("serial") // Conditionally serializable
         final Callable<? extends T> callable;
         @SuppressWarnings("serial") // Conditionally serializable
-        T result;
+        T.ref result;
         AdaptedCallable(Callable<? extends T> callable) {
             if (callable == null) throw new NullPointerException();
             this.callable = callable;

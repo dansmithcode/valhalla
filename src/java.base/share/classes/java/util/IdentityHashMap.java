@@ -419,7 +419,7 @@ public class IdentityHashMap<K,V>
      * @see     #get(Object)
      * @see     #containsKey(Object)
      */
-    public V put(K key, V value) {
+    public V.ref put(K key, V value) {
         final Object k = maskNull(key);
 
         retryAfterResize: for (;;) {

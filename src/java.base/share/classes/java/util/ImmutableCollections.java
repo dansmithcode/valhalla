@@ -907,11 +907,11 @@ class ImmutableCollections {
         @Override public void clear() { throw uoe(); }
         @Override public V compute(K key, BiFunction<? super K,? super V,? extends V> rf) { throw uoe(); }
         @Override public V computeIfAbsent(K key, Function<? super K,? extends V> mf) { throw uoe(); }
-        @Override public V computeIfPresent(K key, BiFunction<? super K,? super V,? extends V> rf) { throw uoe(); }
+        @Override public V.ref computeIfPresent(K key, BiFunction<? super K,? super V,? extends V> rf) { throw uoe(); }
         @Override public V merge(K key, V value, BiFunction<? super V,? super V,? extends V> rf) { throw uoe(); }
-        @Override public V put(K key, V value) { throw uoe(); }
+        @Override public V.ref put(K key, V value) { throw uoe(); }
         @Override public void putAll(Map<? extends K,? extends V> m) { throw uoe(); }
-        @Override public V putIfAbsent(K key, V value) { throw uoe(); }
+        @Override public V.ref putIfAbsent(K key, V value) { throw uoe(); }
         @Override public V.ref remove(Object key) { throw uoe(); }
         @Override public boolean remove(Object key, Object value) { throw uoe(); }
         @Override public V.ref replace(K key, V value) { throw uoe(); }
