@@ -45,7 +45,7 @@ import java.lang.annotation.*;
  * only be used by internal JDK code for experimental purposes and should not
  * affect user-observable outcomes.
  */
-@Target(ElementType.CLASS)
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface LooselyConsistentValue {
 }

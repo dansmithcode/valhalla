@@ -37,7 +37,7 @@ import java.lang.annotation.*;
  * The HotSpot VM depends on this annotation being present to properly
  * initialize {@link NullRestricted} fields and arrays of a value class type.
  */
-@Target(ElementType.CLASS)
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ImplicitlyConstructible {
 }
