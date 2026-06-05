@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -47,12 +47,9 @@ import static java.lang.annotation.ElementType.TYPE;
  * {@code record}.
  *
  * At compile time: javac recognizes annotated JDK classes as value classes
- * whenever preview features are enabled. To work properly with
- * {@code --release older-release}, the annotation requires special handling in
- * {@code make/langtools/src/classes/build/tools/symbolgenerator/CreateSymbols.java} and
- * {@code src/jdk.compiler/share/classes/com/sun/tools/javac/jvm/ClassReader.java}.
+ * whenever preview features are enabled.
  *
- * At run time: other non-preview JDK classes that references preview value
+ * In the VM: other non-preview JDK classes that references preview value
  * classes cannot have {@code LoadableDescriptors} attributes. To enable
  * optimizations in these referencing non-preview JDK class files, the preview
  * value classes should be manually listed for special-case treatment in
@@ -62,7 +59,7 @@ import static java.lang.annotation.ElementType.TYPE;
  *
  * @since Valhalla
  */
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 @Target(value={TYPE})
 public @interface PreviewValue {
 }

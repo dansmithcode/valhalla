@@ -326,10 +326,6 @@ public class CreateSymbols {
             "Ljdk/internal/ValueBased;";
     private static final String VALUE_BASED_ANNOTATION_INTERNAL =
             "Ljdk/internal/ValueBased+Annotation;";
-    private static final String PREVIEW_VALUE_ANNOTATION =
-            "Ljdk/internal/PreviewValue;";
-    private static final String PREVIEW_VALUE_ANNOTATION_INTERNAL =
-            "Ljdk/internal/PreviewValue+Annotation;";
     private static final String REQUIRES_IDENTITY_ANNOTATION =
             "Ljdk/internal/RequiresIdentity;";
     private static final String REQUIRES_IDENTITY_ANNOTATION_INTERNAL =
@@ -340,7 +336,6 @@ public class CreateSymbols {
                     PREVIEW_FEATURE_ANNOTATION_OLD,
                     PREVIEW_FEATURE_ANNOTATION_NEW,
                     VALUE_BASED_ANNOTATION,
-                    PREVIEW_VALUE_ANNOTATION,
                     RESTRICTED_ANNOTATION,
                     REQUIRES_IDENTITY_ANNOTATION));
 
@@ -1060,12 +1055,6 @@ public class CreateSymbols {
             //the non-public ValueBased annotation will not be available in ct.sym,
             //replace with purely synthetic javac-internal annotation:
             annotationType = VALUE_BASED_ANNOTATION_INTERNAL;
-        }
-
-        if (PREVIEW_VALUE_ANNOTATION.equals(annotationType)) {
-            //the non-public PreviewValue annotation will not be available in ct.sym,
-            //replace with purely synthetic javac-internal annotation:
-            annotationType = PREVIEW_VALUE_ANNOTATION_INTERNAL;
         }
 
         if (REQUIRES_IDENTITY_ANNOTATION.equals(annotationType)) {

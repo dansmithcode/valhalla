@@ -61,12 +61,10 @@ import com.sun.tools.javac.file.PathFileObject;
 import com.sun.tools.javac.jvm.ClassFile.Version;
 import com.sun.tools.javac.jvm.PoolConstant.NameAndType;
 import com.sun.tools.javac.main.Option;
-import com.sun.tools.javac.resources.CompilerProperties;
 import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.resources.CompilerProperties.Fragments;
 import com.sun.tools.javac.resources.CompilerProperties.LintWarnings;
 import com.sun.tools.javac.resources.CompilerProperties.Warnings;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.*;
 import com.sun.tools.javac.util.ByteBuffer.UnderflowException;
 import com.sun.tools.javac.util.DefinedBy.Api;
@@ -78,7 +76,6 @@ import static com.sun.tools.javac.code.Kinds.Kind.*;
 
 import com.sun.tools.javac.code.Scope.LookupKind;
 
-import static com.sun.tools.javac.code.Scope.LookupKind.NON_RECURSIVE;
 import static com.sun.tools.javac.code.TypeTag.ARRAY;
 import static com.sun.tools.javac.code.TypeTag.CLASS;
 import static com.sun.tools.javac.code.TypeTag.TYPEVAR;
@@ -1553,9 +1550,6 @@ public class ClassReader {
             } else if (proxy.type.tsym.flatName() == syms.valueBasedInternalType.tsym.flatName()) {
                 Assert.check(sym.kind == TYP);
                 sym.flags_field |= VALUE_BASED;
-            } else if (proxy.type.tsym.flatName() == syms.previewValueInternalType.tsym.flatName()) {
-                Assert.check(sym.kind == TYP);
-                sym.flags_field |= PREVIEW_VALUE;
             } else if (proxy.type.tsym.flatName() == syms.restrictedInternalType.tsym.flatName()) {
                 Assert.check(sym.kind == MTH);
                 sym.flags_field |= RESTRICTED;
@@ -1575,8 +1569,6 @@ public class ClassReader {
                     setFlagIfAttributeTrue(proxy, sym, names.reflective, PREVIEW_REFLECTIVE);
                 } else if (proxy.type.tsym == syms.valueBasedType.tsym && sym.kind == TYP) {
                     sym.flags_field |= VALUE_BASED;
-                } else if (proxy.type.tsym == syms.previewValueType.tsym && sym.kind == TYP) {
-                    sym.flags_field |= PREVIEW_VALUE;
                 } else if (proxy.type.tsym == syms.restrictedType.tsym) {
                     Assert.check(sym.kind == MTH);
                     sym.flags_field |= RESTRICTED;
@@ -3351,7 +3343,7 @@ public class ClassReader {
             flags &= ~ACC_MODULE;
             flags |= MODULE;
         }
-        if (((flags & ACC_IDENTITY) != 0 && !isPreviewValue(flags))
+        if (((flags & ACC_IDENTITY) != 0)
                 || (majorVersion <= Version.MAX().major && minorVersion != PREVIEW_MINOR_VERSION && (flags & INTERFACE) == 0)) {
             flags |= IDENTITY_TYPE;
         } else if (needsValueFlag(c, flags)) {
@@ -3365,16 +3357,11 @@ public class ClassReader {
     private boolean needsValueFlag(Symbol c, long flags) {
         boolean previewClassFile = minorVersion == ClassFile.PREVIEW_MINOR_VERSION;
         if (allowValueClasses) {
-            if (previewClassFile && majorVersion >= Version.MAX().major && (flags & INTERFACE) == 0 ||
-                    majorVersion >= Version.MAX().major && isPreviewValue(flags)) {
+            if (previewClassFile && majorVersion >= Version.MAX().major && (flags & INTERFACE) == 0) {
                 return true;
             }
         }
         return false;
-    }
-
-    private boolean isPreviewValue(long flags) {
-        return allowValueClasses && ((flags & PREVIEW_VALUE) != 0);
     }
 
     /**
