@@ -46,8 +46,8 @@ import static java.lang.annotation.ElementType.TYPE;
  * must be immediately followed on the same line by {@code class} or
  * {@code record}.
  *
- * At compile time: javac recognizes annotated JDK classes as value classes
- * whenever preview features are enabled.
+ * At compile time: When `--enable-preview`, javac uses the alternative set
+ * of classes from those alternative sources.
  *
  * In the VM: other non-preview JDK classes that references preview value
  * classes cannot have {@code LoadableDescriptors} attributes. To enable

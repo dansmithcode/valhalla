@@ -378,12 +378,6 @@ public class Annotate {
             }
 
             if (!c.type.isErroneous()
-                    && toAnnotate.kind == TYP
-                    && types.isSameType(c.type, syms.previewValueType)) {
-                toAnnotate.flags_field |= Flags.PREVIEW_VALUE;
-            }
-
-            if (!c.type.isErroneous()
                     && types.isSameType(c.type, syms.restrictedType)) {
                 toAnnotate.flags_field |= Flags.RESTRICTED;
             }

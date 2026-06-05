@@ -245,7 +245,6 @@ public class Symtab {
     // valhalla
     public final Type valueBasedType;
     public final Type valueBasedInternalType;
-    public final Type previewValueType;
     /** The symbol representing the finalize method on Object */
     public final MethodSymbol objectFinalize;
     public final Type numberType;
@@ -629,7 +628,6 @@ public class Symtab {
         constantBootstrapsType = enterClass("java.lang.invoke.ConstantBootstraps");
         valueBasedType = enterClass("jdk.internal.ValueBased");
         valueBasedInternalType = enterSyntheticAnnotation("jdk.internal.ValueBased+Annotation");
-        previewValueType = enterClass("jdk.internal.PreviewValue");
         requiresIdentityType = enterClass("jdk.internal.RequiresIdentity");
         requiresIdentityInternalType = enterSyntheticAnnotation(names.requiresIdentityInternal);
         classDescType = enterClass("java.lang.constant.ClassDesc");
